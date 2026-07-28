@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0d0d15">
+  <title>Mnemonika — Word Reels</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container" id="app">
+
+    <!-- ============ HOME ============ -->
+    <section class="view active" id="view-home">
+      <div class="home-header">
+        <div class="hi" id="greeting">Assalomu alaykum 👋</div>
+        <div class="date" id="todayDate"></div>
+      </div>
+      <div class="home-body">
+        <div id="continueCard"></div>
+
+        <div class="section-title">Bugungi takrorlash <span class="rule-badge">3 · 7 · 14</span></div>
+        <div id="reviewList"></div>
+
+        <div class="section-title">Yangi dars</div>
+        <div id="newLesson"></div>
+
+        <div class="section-title">Umumiy holat</div>
+        <div class="stat-grid">
+          <div class="stat-card"><div class="num" id="stLearned">0</div><div class="lbl">O'rganilgan kun</div></div>
+          <div class="stat-card"><div class="num" id="stReviews">0</div><div class="lbl">Bugungi takror</div></div>
+          <div class="stat-card"><div class="num" id="stPercent">0%</div><div class="lbl">Umumiy</div></div>
+        </div>
+
+        <div class="section-title">30 kunlik reja</div>
+        <div class="day-grid" id="homeGrid"></div>
+        <div class="legend">
+          <span><i style="background:var(--green)"></i>o'rganilgan</span>
+          <span><i style="background:var(--amber)"></i>takror kere</span>
+          <span><i style="background:var(--accent2)"></i>joriy</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ READ ============ -->
+    <section class="view" id="view-read">
+      <div class="top-bar">
+        <button class="day-badge" id="dayBadge">1-KUN <span class="caret">▼</span></button>
+        <div class="progress-text" id="progressText">1 / 4946</div>
+      </div>
+      <div class="day-banner" id="dayBanner">🚀 Kun almashdi!</div>
+      <div class="reel-viewport" id="viewport">
+        <div class="card-stage" id="stage">
+          <div class="card-slot" id="slotA">
+            <div class="card">
+              <div class="card-front">
+                <div class="word-main">Read</div>
+                <div class="word-phonetic">(rid)</div>
+                <div class="front-hint">bosing ↺</div>
+                <button class="audio-btn" aria-label="Talaffuz"><svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg></button>
+              </div>
+              <div class="card-back">
+                <div class="tap-hint">Mnemonika &amp; Tarjima</div>
+                <div class="back-body"><div class="word-translation">o'qimoq</div><div class="mnemonics-box">Mnemonika...</div></div>
+                <div class="flip-hint">↺ old tomonga qaytish</div>
+              </div>
+            </div>
+          </div>
+          <div class="card-slot" id="slotB">
+            <div class="card">
+              <div class="card-front">
+                <div class="word-main"></div>
+                <div class="word-phonetic"></div>
+                <div class="front-hint">bosing ↺</div>
+                <button class="audio-btn" aria-label="Talaffuz"><svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg></button>
+              </div>
+              <div class="card-back">
+                <div class="tap-hint">Mnemonika &amp; Tarjima</div>
+                <div class="back-body"><div class="word-translation"></div><div class="mnemonics-box"></div></div>
+                <div class="flip-hint">↺ old tomonga qaytish</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PERSON ============ -->
+    <section class="view" id="view-person">
+      <div class="settings-header">Profil &amp; Sozlamalar</div>
+      <div class="settings-body">
+        <div class="profile-card">
+          <div class="avatar" id="avatar">
+            <img id="avatarImg" alt="" style="display:none">
+            <span id="avatarInitials">?</span>
+          </div>
+          <div class="pname" id="pName">Mehmon</div>
+          <div class="puser" id="pUsername">Telegram orqali oching</div>
+        </div>
+        <div class="stat-grid" style="grid-template-columns:1fr 1fr;">
+          <div class="stat-card"><div class="num" id="pCurrent">1</div><div class="lbl">Joriy so'z</div></div>
+          <div class="stat-card"><div class="num" id="pDay">1</div><div class="lbl">Joriy kun</div></div>
+        </div>
+        <div class="settings-section-title">Ko'rinish</div>
+        <div class="setting-row">
+          <div class="setting-label"><div class="ic" id="themeIcon">🌙</div>
+            <div class="txt"><b>Tungi rejim</b><span id="themeSub">Qorong'i tema yoqilgan</span></div></div>
+          <label class="switch"><input type="checkbox" id="themeToggle"><span class="track"></span><span class="thumb"></span></label>
+        </div>
+        <div class="settings-section-title">Ma'lumot</div>
+        <div class="setting-row">
+          <div class="setting-label"><div class="ic">📚</div><div class="txt"><b>Jami so'zlar</b><span>30 kunlik reja</span></div></div>
+          <div style="font-weight:800; color:var(--accent2)" id="totalWords">4946</div>
+        </div>
+        <div class="setting-row">
+          <div class="setting-label"><div class="ic">🔁</div><div class="txt"><b>Takrorlash tizimi</b><span>3, 7 va 14 kunlik</span></div></div>
+          <div style="font-weight:800; color:var(--accent2)">3·7·14</div>
+        </div>
+        <div class="settings-section-title">Boshqaruv</div>
+        <button class="reset-btn" id="resetBtn">Progressni tozalash (boshidan)</button>
+      </div>
+    </section>
+
+    <!-- ============ BOTTOM NAV ============ -->
+    <nav class="bottom-nav">
+      <button class="nav-item active" data-view="home" aria-label="Bosh sahifa">
+        <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span>Bosh</span>
+        <span class="nav-badge" id="navBadge"></span>
+      </button>
+      <button class="nav-item" data-view="read" aria-label="O'qish">
+        <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.7 7.6 1 12c1.7 4.4 6 7.5 11 7.5s9.3-3.1 11-7.5C21.3 7.6 17 4.5 12 4.5zm0 12A4.5 4.5 0 1 1 12 7.5a4.5 4.5 0 0 1 0 9zm0-7A2.5 2.5 0 1 0 12 14.5 2.5 2.5 0 0 0 12 9.5z"/></svg><span>O'qish</span>
+      </button>
+      <button class="nav-item" data-view="person" aria-label="Profil">
+        <svg viewBox="0 0 24 24"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-4 0-9 2-9 5.5V22h18v-2.5C21 16 16 14 12 14z"/></svg><span>Profil</span>
+      </button>
+    </nav>
+
+    <!-- ============ DAY PICKER MODAL ============ -->
+    <div class="modal-overlay" id="dayPicker">
+      <div class="modal">
+        <div class="modal-head"><b>Kunni tanlang</b><button id="closePicker" aria-label="Yopish">✕</button></div>
+        <div class="day-grid" id="pickerGrid"></div>
+        <div class="legend">
+          <span><i style="background:var(--green)"></i>o'rganilgan</span>
+          <span><i style="background:var(--amber)"></i>takror</span>
+          <span><i style="background:var(--accent2)"></i>joriy</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ RESET CONFIRM MODAL ============ -->
+    <div class="modal-overlay" id="confirmResetModal">
+      <div class="modal confirm-modal">
+        <div class="confirm-icon">⚠️</div>
+        <div class="confirm-title">Progressni tozalash</div>
+        <div class="confirm-text">Haqiqatan ham barcha progress va takrorlash ma'lumotlarini boshidan tozalamoqchimisiz? Bu amalni orqaga qaytarib bo'lmaydi.</div>
+        <div class="confirm-actions">
+          <button class="confirm-btn cancel" id="cancelResetBtn">Bekor qilish</button>
+          <button class="confirm-btn danger" id="confirmResetBtn">Ha, tozalash</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ RESET SUCCESS ANIMATION ============ -->
+    <div class="reset-success" id="resetSuccess">
+      <div class="reset-success-circle">
+        <svg viewBox="0 0 52 52">
+          <circle class="rs-circle" cx="26" cy="26" r="24" fill="none"/>
+          <path class="rs-check" fill="none" d="M14 27l7 7 16-16"/>
+        </svg>
+      </div>
+      <div class="reset-success-text">Tozalandi!</div>
+    </div>
+
+    <!-- ============ REVIEW SESSION OVERLAY ============ -->
+    <div class="review-overlay" id="reviewOverlay">
+      <div class="review-screen active" id="reviewScreen-intro">
+        <button class="review-close" id="reviewCloseIntro">✕</button>
+        <div class="review-intro-icon">🔁</div>
+        <div class="review-intro-title" id="reviewIntroTitle">1-kun takrorlash</div>
+        <div class="review-intro-sub" id="reviewIntroSub">+3 kunlik takror · 30 so'z</div>
+        <div class="review-intro-hint">So'zlar aralashtirilib, moslashtirish va test shaklida so'raladi. Xato qilingan so'zlar yana bir necha marta takrorlanadi.</div>
+        <button class="review-start-btn" id="reviewStartBtn">Boshlash</button>
+      </div>
+      <div class="review-screen" id="reviewScreen-quiz">
+        <div class="review-quiz-header">
+          <button class="review-close" id="reviewCloseQuiz">✕</button>
+          <div class="review-progress-track"><div class="review-progress-fill" id="reviewProgressBar"></div></div>
+          <div class="review-progress-text" id="reviewProgressText">0 / 0</div>
+        </div>
+        <div class="review-area" id="reviewArea"></div>
+      </div>
+      <div class="review-screen" id="reviewScreen-result">
+        <div class="review-result-icon">🎉</div>
+        <div class="review-result-title">Takrorlash tugadi!</div>
+        <div class="result-stats" id="reviewResultStats"></div>
+        <button class="review-start-btn" id="reviewFinishBtn">Davom etish</button>
+      </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
