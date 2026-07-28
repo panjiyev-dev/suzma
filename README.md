@@ -10,7 +10,7 @@ Bir oyda 5000 ta ingliz so'zini yodlashga mo'ljallangan Telegram Mini App. Har b
 - **30 kunlik reja** — kunlar bo'yicha progress, umumiy statistika.
 - **Tungi/yorug' rejim**, Telegram Mini App integratsiyasi (tema, xavfsiz zonalar, Back Button, haptika).
 - **Telegram bot** — kanalga obuna tekshiruvi, kontakt orqali ro'yxatdan o'tish, admin statistikasi va foydalanuvchilar ro'yxati.
-- **Qurilmalar orasida sinxronizatsiya** — progress serverga (SQLite) saqlanadi, Telegram ilovasini boshqa qurilmada ochsangiz ham davom etadi.
+- **Qurilmalar orasida sinxronizatsiya** — progress serverga (Turso/libSQL) saqlanadi, Telegram ilovasini boshqa qurilmada ochsangiz ham davom etadi.
 
 ## Loyiha tuzilishi
 
@@ -22,8 +22,8 @@ Bir oyda 5000 ta ingliz so'zini yodlashga mo'ljallangan Telegram Mini App. Har b
 ├── data.js         # 4946 ta so'z (so'z, talaffuz, tarjima, mnemonika)
 ├── text.txt        # So'zlarning xom manba fayli
 └── bot/            # Telegram bot + progress-sinxronizatsiya API
-    ├── index.js         # Bot (grammY) + Express API server
-    ├── db.js            # SQLite (foydalanuvchilar, progress, faollik)
+    ├── index.js         # Bot (grammY) + Express API server (long-polling yoki webhook)
+    ├── db.js            # Turso/libSQL (foydalanuvchilar, progress, faollik)
     ├── verifyInitData.js # Telegram Mini App initData'ni xavfsiz tekshirish (HMAC)
     └── .env.example     # Kerakli muhit o'zgaruvchilari namunasi
 ```
@@ -52,5 +52,11 @@ npm start
 | `ADMIN_ID` | Admin panelga kirish huquqiga ega Telegram ID |
 | `CHANNEL_USERNAME` | Ro'yxatdan o'tishdan oldin obuna talab qilinadigan kanal (`@` belgisisiz) |
 | `PORT` | API serveri porti (standart: 3000) |
+| `TURSO_DATABASE_URL` | Turso bazasi manzili. Bo'sh qoldirilsa, lokal `users.db` fayli ishlatiladi (rivojlantirish uchun) |
+| `TURSO_AUTH_TOKEN` | Turso baza kirish tokeni |
+| `PUBLIC_URL` | Faqat production'da (masalan Render'da) kerak — bot shu manzil orqali **webhook** rejimida ishlaydi. Lokal kompyuterda bo'sh qoldirilsa, eski **long-polling** rejimi ishlatiladi |
+| `WEBHOOK_SECRET` | Webhook so'rovlarini tasdiqlash uchun maxfiy satr (faqat `PUBLIC_URL` bilan birga kerak) |
 
-**Eslatma:** Kanalga obuna tekshiruvi ishlashi uchun bot shu kanalga **admin** sifatida qo'shilgan bo'lishi kerak, aks holda `getChatMember` so'rovi xatolik qaytaradi.
+**Eslatmalar:**
+- Kanalga obuna tekshiruvi ishlashi uchun bot shu kanalga **admin** sifatida qo'shilgan bo'lishi kerak, aks holda `getChatMember` so'rovi xatolik qaytaradi.
+- `PUBLIC_URL` berilganda bot avtomatik ravishda Telegram'ga `{PUBLIC_URL}/telegram-webhook` manzilini webhook sifatida ro'yxatdan o'tkazadi.
