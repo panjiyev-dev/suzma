@@ -1,6 +1,6 @@
 /* ===== TELEGRAM MINI APP ===== */
 const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
-const API_BASE_URL = 'https://YOUR-BOT-SERVER-URL.example.com';
+const API_BASE_URL = 'https://learn.5000-words.uz';
 
 async function apiCall(path, body) {
   if (!tg || !tg.initData || API_BASE_URL.includes('YOUR-BOT-SERVER-URL')) return null;
