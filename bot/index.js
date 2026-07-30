@@ -16,7 +16,7 @@ const WEBAPP_URL = process.env.WEBAPP_URL || 'https://work.5000-words.uz/';
 const CHANNEL_USERNAME = process.env.CHANNEL_USERNAME || 'uz_suzma';
 // PUBLIC_URL berilsa (masalan Render/Custom domenda) - webhook rejimi ishlatiladi.
 // Berilmasa (lokal kompyuterda) - eski long-polling rejimi ishlaydi, hech narsa sozlash shart emas.
-const PUBLIC_URL = process.env.PUBLIC_URL;
+const PUBLIC_URL = process.env.PUBLIC_URL ? process.env.PUBLIC_URL.replace(/\/+$/, '') : undefined;
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || crypto.randomBytes(24).toString('hex');
 const PORT = process.env.PORT || 3000;
 const PAGE_SIZE = 10;
