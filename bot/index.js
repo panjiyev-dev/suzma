@@ -12,7 +12,7 @@ import {
 
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const ADMIN_ID = Number(process.env.ADMIN_ID || 7847712643);
-const WEBAPP_URL = process.env.WEBAPP_URL || 'https://merry-pavlova-5b0e8f.netlify.app/';
+const WEBAPP_URL = process.env.WEBAPP_URL || 'https://work.5000-words.uz/';
 const CHANNEL_USERNAME = process.env.CHANNEL_USERNAME || 'uz_suzma';
 // PUBLIC_URL berilsa (masalan Render/Custom domenda) - webhook rejimi ishlatiladi.
 // Berilmasa (lokal kompyuterda) - eski long-polling rejimi ishlaydi, hech narsa sozlash shart emas.
