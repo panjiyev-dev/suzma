@@ -345,16 +345,21 @@ document.addEventListener('keydown', (e) => {
 
 /* ===== DAY PICKER ===== */
 const dayPicker = document.getElementById('dayPicker');
+function isDayLocked(day) {
+  return !srs.learned[day] && day !== nextNewDay();
+}
 function dayStatus(day) {
   if (wordsData[currentIndex].day === day) return 'current';
   if (getDueReviews().some(r => r.day === day)) return 'due';
   if (srs.learned[day]) return 'learned';
+  if (isDayLocked(day)) return 'locked';
   return '';
 }
 function statusLabel(st, day) {
   if (st === 'current') return 'joriy';
   if (st === 'due') return 'takror';
   if (st === 'learned') return '✓';
+  if (st === 'locked') return '🔒';
   return dayCount[day] + ' so\'z';
 }
 function buildDayGrid(container) {
@@ -364,7 +369,11 @@ function buildDayGrid(container) {
     const b = document.createElement('button');
     b.className = 'day-chip ' + st;
     b.innerHTML = '<span class="dn">' + day + '</span><span class="st">' + statusLabel(st, day) + '</span>' + (st === 'due' ? '<span class="dot"></span>' : '');
-    b.addEventListener('click', () => jumpToDay(day));
+    if (st === 'locked') {
+      b.disabled = true;
+    } else {
+      b.addEventListener('click', () => jumpToDay(day));
+    }
     container.appendChild(b);
   });
 }
@@ -375,6 +384,7 @@ document.getElementById('closePicker').addEventListener('click', closePicker);
 dayPicker.addEventListener('click', (e) => { if (e.target === dayPicker) closePicker(); });
 
 function jumpToDay(day) {
+  if (isDayLocked(day)) { toast("🔒 Avval oldingi kunlarni tugating"); closePicker(); return; }
   currentIndex = dayFirst[day]; saveIndex();
   const s = slots[activeSlot];
   renderInto(s, currentIndex); setPos(s, 'center', false);

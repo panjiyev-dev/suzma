@@ -181,6 +181,8 @@ body {
 .day-chip.current .st { color:rgba(255,255,255,.85); }
 .day-chip .dot { position:absolute; top:6px; right:7px; width:7px; height:7px; border-radius:50%; }
 .day-chip.due .dot { background:var(--amber); }
+.day-chip.locked { opacity:.4; cursor:not-allowed; }
+.day-chip.locked:active { transform:none; }
 
 /* ================== PERSON ================== */
 .settings-header { height:calc(58px + var(--tg-safe-top, env(safe-area-inset-top))); padding-top:var(--tg-safe-top, env(safe-area-inset-top));
