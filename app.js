@@ -151,18 +151,18 @@ function toast(msg) { toastEl.textContent = msg; toastEl.classList.add('show'); 
 
 /* ===== SRS ===== */
 function getDueReviews() {
-  const today = todayStr(); const out = [];
+  const latestDay = Object.keys(srs.learned).length; // ketma-ket o'rganilgani uchun = rejada erishilgan eng oxirgi kun
+  const out = [];
   allDays.forEach(day => {
     const learned = srs.learned[day]; if (!learned) return;
     INTERVALS.forEach(iv => {
       const kk = day + '_' + iv;
       if (srs.reviewed[kk]) return;
-      const due = addKey(learned, iv);
-      const delta = diffDays(due, today);
-      if (delta >= 0) out.push({ day, interval: iv, due, overdue: delta, learned });
+      const delta = latestDay - day - iv;
+      if (delta >= 0) out.push({ day, interval: iv, overdue: delta, learned });
     });
   });
-  out.sort((a, b) => (a.due < b.due ? -1 : a.due > b.due ? 1 : a.day - b.day));
+  out.sort((a, b) => (b.overdue - a.overdue) || (a.day - b.day));
   return out;
 }
 function nextNewDay() { for (const d of allDays) if (!srs.learned[d]) return d; return null; }
@@ -173,10 +173,11 @@ function onReachDayEnd(day) {
     srs.learned[day] = today; saveSrs();
     toast('✅ ' + day + '-kun o\'rganildi!'); haptic('success');
   } else {
+    const latestDay = Object.keys(srs.learned).length;
     const doneNow = [];
     for (const iv of INTERVALS) {
       const kk = day + '_' + iv;
-      if (!srs.reviewed[kk] && diffDays(addKey(srs.learned[day], iv), today) >= 0) {
+      if (!srs.reviewed[kk] && (latestDay - day - iv) >= 0) {
         srs.reviewed[kk] = today; doneNow.push(iv);
       }
     }
