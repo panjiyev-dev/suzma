@@ -132,6 +132,7 @@ function renderInto(slot, index) {
   p.word.textContent = d.word; p.phon.textContent = '(' + d.phonetic + ')';
   p.trans.textContent = d.translation; p.mnem.textContent = d.mnemonic;
   p.card.classList.remove('flipped');
+  preloadAudio(d.word);
 }
 function setPos(slot, pos, animate) {
   slot.classList.toggle('no-anim', !animate);
@@ -269,7 +270,24 @@ function pickEnglishVoice() {
     || voices.find(v => v.lang && v.lang.toLowerCase().startsWith('en'))
     || null;
 }
-function speakWord(text) {
+const audioCache = new Map();
+const AUDIO_CACHE_LIMIT = 30;
+
+function ttsUrl(word) {
+  return API_BASE_URL + '/api/tts?word=' + encodeURIComponent(word);
+}
+function preloadAudio(word) {
+  if (audioCache.has(word)) return;
+  const a = new Audio();
+  a.preload = 'auto';
+  a.src = ttsUrl(word);
+  audioCache.set(word, a);
+  if (audioCache.size > AUDIO_CACHE_LIMIT) {
+    audioCache.delete(audioCache.keys().next().value);
+  }
+}
+
+function speakWithBrowserTts(text) {
   if (!ttsSupported) { toast("Bu qurilmada ovoz ijrosi ishlamaydi"); return; }
   try {
     window.speechSynthesis.resume();
@@ -281,6 +299,14 @@ function speakWord(text) {
     u.onerror = () => toast("Ovozni ijro etib bo'lmadi");
     window.speechSynthesis.speak(u);
   } catch (e) { toast("Ovozni ijro etib bo'lmadi"); }
+}
+function speakWord(text) {
+  let a = audioCache.get(text);
+  if (!a) { a = new Audio(); a.src = ttsUrl(text); audioCache.set(text, a); }
+  a.onerror = () => speakWithBrowserTts(text);
+  a.currentTime = 0;
+  a.playbackRate = 1.1;
+  a.play().catch(() => speakWithBrowserTts(text));
 }
 function speakCurrentWord(e) {
   e.stopPropagation();

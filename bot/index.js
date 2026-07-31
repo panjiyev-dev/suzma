@@ -1,5 +1,7 @@
 import 'dotenv/config';
 import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
 import express from 'express';
 import cors from 'cors';
 import { Bot, Keyboard, InlineKeyboard, webhookCallback } from 'grammy';
@@ -249,6 +251,41 @@ app.post('/api/progress/save', withAuth, async (req, res) => {
 app.post('/api/progress/reset', withAuth, async (req, res) => {
   await resetProgress(req.tgUser.id);
   res.json({ ok: true });
+});
+
+/* ===== TTS PROKSI (so'z talaffuzi, doimiy keshlangan) ===== */
+const TTS_CACHE_DIR = path.join(process.cwd(), 'tts-cache');
+if (!fs.existsSync(TTS_CACHE_DIR)) fs.mkdirSync(TTS_CACHE_DIR, { recursive: true });
+
+function ttsCacheFile(word) {
+  const hash = crypto.createHash('sha1').update(word.toLowerCase().trim()).digest('hex');
+  return path.join(TTS_CACHE_DIR, hash + '.mp3');
+}
+
+app.get('/api/tts', async (req, res) => {
+  const word = String(req.query.word || '').trim().slice(0, 100);
+  if (!word) return res.status(400).json({ error: 'word talab qilinadi' });
+
+  const filePath = ttsCacheFile(word);
+  res.set('Cache-Control', 'public, max-age=31536000, immutable');
+  res.set('Content-Type', 'audio/mpeg');
+
+  if (fs.existsSync(filePath)) {
+    fs.createReadStream(filePath).pipe(res);
+    return;
+  }
+
+  try {
+    const url = 'https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=en&q=' + encodeURIComponent(word);
+    const upstream = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+    if (!upstream.ok) throw new Error('upstream status ' + upstream.status);
+    const buf = Buffer.from(await upstream.arrayBuffer());
+    fs.writeFileSync(filePath, buf);
+    res.send(buf);
+  } catch (e) {
+    console.error('TTS xatosi:', word, e.message);
+    res.status(502).json({ error: 'tts_failed' });
+  }
 });
 
 if (PUBLIC_URL) {
