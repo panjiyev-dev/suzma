@@ -151,7 +151,7 @@ function toast(msg) { toastEl.textContent = msg; toastEl.classList.add('show'); 
 
 /* ===== SRS ===== */
 function getDueReviews() {
-  const latestDay = Object.keys(srs.learned).length; // ketma-ket o'rganilgani uchun = rejada erishilgan eng oxirgi kun
+  const latestDay = Object.keys(srs.learned).length + 1; // ketma-ket o'rganilgani uchun = hozir turgan (joriy) reja-kuni
   const out = [];
   allDays.forEach(day => {
     const learned = srs.learned[day]; if (!learned) return;
@@ -173,7 +173,7 @@ function onReachDayEnd(day) {
     srs.learned[day] = today; saveSrs();
     toast('✅ ' + day + '-kun o\'rganildi!'); haptic('success');
   } else {
-    const latestDay = Object.keys(srs.learned).length;
+    const latestDay = Object.keys(srs.learned).length + 1;
     const doneNow = [];
     for (const iv of INTERVALS) {
       const kk = day + '_' + iv;
