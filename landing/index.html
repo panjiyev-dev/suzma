@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Suzma — 1 oyda 5000 so'z, unutmasdan</title>
+<title>5000-words — 1 oyda 5000 so'z, unutmasdan</title>
 <meta name="description" content="Har bir so'zga kulgili mnemonika biriktirilgan, Reels uslubida o'rganiladigan va 3·7·14 kunlik ilmiy takrorlash tizimiga ega Telegram Mini App.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧠</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,8 +14,8 @@
 
 <nav class="nav">
   <div class="nav-inner">
-    <div class="brand"><span class="brand-mark"></span>Suzma</div>
-    <a class="btn btn-primary btn-sm" href="https://t.me/Suzmauzbot">Botni ochish</a>
+    <div class="brand"><span class="brand-mark"></span>5000-words</div>
+    <a class="btn btn-primary btn-sm" href="https://t.me/words5000uzbot">Botni ochish</a>
   </div>
 </nav>
 
@@ -27,24 +27,12 @@
       <h1>1 oyda <span class="grad-text">5000 so'z</span> — unutmasdan yodda qoladi</h1>
       <p class="lead">Har bir so'zga kulgili o'zbekcha mnemonika biriktirilgan. Reels kabi yuqoriga surib o'rganasiz, ilm asosidagi jadval esa unutishga yo'l qo'ymaydi.</p>
       <div class="hero-actions">
-        <a class="btn btn-primary btn-lg" href="https://t.me/Suzmauzbot">Botni ochish →</a>
+        <a class="btn btn-primary btn-lg" href="https://t.me/words5000uzbot">Botni ochish →</a>
         <span class="hero-note">Ro'yxatdan o'tish shart emas</span>
       </div>
     </div>
     <div class="hero-visual">
-      <div class="phone">
-        <div class="phone-screen">
-          <span class="phone-hint">reels ekran ↑</span>
-          <div class="phone-card">
-            <div class="phone-word">University</div>
-            <div class="phone-mnem">🪐 "Yupiter" — universitet Yupiter sayyorasida muallaq turibdi</div>
-            <div class="phone-icons">
-              <span class="phone-ic">🔊</span>
-              <span class="phone-ic">↻</span>
-            </div>
-          </div>
-        </div>
-      </div>
+      <div id="brainStage" class="brain-stage" aria-label="Miya 3D animatsiyasi"></div>
     </div>
   </div>
 </header>
@@ -57,7 +45,7 @@
   </div>
   <div class="ps-card ps-highlight">
     <div class="ps-emoji">✨</div>
-    <h3>Suzma nima qiladi</h3>
+    <h3>5000-words nima qiladi</h3>
     <p>Kulgili hikoya + 3·7·14 kunlik ilmiy takrorlash — so'z uzoq muddatli xotirada qoladi.</p>
   </div>
 </section>
@@ -120,7 +108,7 @@
     <div class="how-step">
       <div class="how-num">1</div>
       <div class="how-title">Botga kiring</div>
-      <div class="how-desc">@Suzmauzbot ni oching</div>
+      <div class="how-desc">@words5000uzbot ni oching</div>
     </div>
     <div class="how-step">
       <div class="how-num">2</div>
@@ -136,6 +124,37 @@
       <div class="how-num">4</div>
       <div class="how-title">Avtomatik takrorlang</div>
       <div class="how-desc">3·7·14 kunda tizim eslatadi</div>
+    </div>
+  </div>
+
+  <div class="demo-row">
+    <div class="demo-copy">
+      <div class="demo-eyebrow">Sinab ko'ring</div>
+      <p class="demo-caption" id="demoCaption">👈 Kartadagi so'zni o'qing va ustiga bosing</p>
+      <div class="demo-progress" id="demoProgress">1 / 9</div>
+      <div class="demo-dots" id="demoDots"></div>
+    </div>
+    <div class="demo-visual">
+      <div class="demo-phone">
+        <div class="demo-card" id="demoCard">
+          <div class="demo-face demo-front">
+            <div class="demo-image" id="demoImage" style="display:none">
+              <img alt="">
+              <a class="demo-image-credit" id="demoImageCredit" target="_blank" rel="noopener"></a>
+            </div>
+            <div class="demo-word" id="demoWord"></div>
+            <div class="demo-phon" id="demoPhon"></div>
+            <button class="demo-audio" id="demoAudio" aria-label="Talaffuz">🔊</button>
+            <div class="demo-hint">bosing ↺</div>
+          </div>
+          <div class="demo-face demo-back">
+            <div class="demo-tap-hint">Mnemonika &amp; Tarjima</div>
+            <div class="demo-trans" id="demoTrans"></div>
+            <div class="demo-mnem" id="demoMnem"></div>
+            <div class="demo-flip-hint">↺ keyingi so'z uchun bosing</div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -159,14 +178,33 @@
   <div class="cta-box">
     <h2>Bugundan boshlang</h2>
     <p>4946 so'zni unutmasdan yodlashning eng qulay yo'li</p>
-    <a class="btn btn-light btn-lg" href="https://t.me/Suzmauzbot">Botni ochish →</a>
+    <a class="btn btn-light btn-lg" href="https://t.me/words5000uzbot">Botni ochish →</a>
   </div>
 </section>
 
 <footer class="footer">
-  <span class="brand-small">Suzma</span>
-  <span class="footer-copy">© 2026 Suzma. Barcha huquqlar himoyalangan.</span>
+  <span class="brand-small">5000-words</span>
+  <span class="footer-copy">© 2026 5000-words. Barcha huquqlar himoyalangan.</span>
 </footer>
 
+<div class="bottom-alert-overlay" id="bottomAlert">
+  <div class="bottom-alert-box">
+    <button class="bottom-alert-close" id="bottomAlertClose" aria-label="Yopish">✕</button>
+    <div class="bottom-alert-icon">🚀</div>
+    <h3>O'rganishga va kelajagingizni o'zgartirishga tayyormisiz?</h3>
+    <a class="btn btn-primary btn-lg" href="https://t.me/words5000uzbot">Ha →</a>
+  </div>
+</div>
+
+<script src="demo.js"></script>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.184.0/build/three.module.js",
+    "three/addons/controls/OrbitControls.js": "https://unpkg.com/three@0.184.0/examples/jsm/controls/OrbitControls.js"
+  }
+}
+</script>
+<script type="module" src="brain.js"></script>
 </body>
 </html>

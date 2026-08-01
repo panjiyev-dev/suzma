@@ -122,16 +122,30 @@ const toastEl = document.getElementById('toast');
 const slots = [document.getElementById('slotA'), document.getElementById('slotB')];
 let activeSlot = 0;
 
+const wordImages = typeof imagesData !== 'undefined' ? imagesData : {};
+
 function slotParts(s) {
   return { card: s.querySelector('.card'), word: s.querySelector('.word-main'),
     phon: s.querySelector('.word-phonetic'), trans: s.querySelector('.word-translation'),
-    mnem: s.querySelector('.mnemonics-box') };
+    mnem: s.querySelector('.mnemonics-box'), imgBox: s.querySelector('.word-image'),
+    img: s.querySelector('.word-image img'), imgCredit: s.querySelector('.word-image-credit') };
 }
 function renderInto(slot, index) {
   const d = wordsData[index], p = slotParts(slot);
   p.word.textContent = d.word; p.phon.textContent = '(' + d.phonetic + ')';
   p.trans.textContent = d.translation; p.mnem.textContent = d.mnemonic;
   p.card.classList.remove('flipped');
+
+  const image = wordImages[d.word];
+  if (image) {
+    p.img.onload = () => { p.imgBox.classList.toggle('portrait', p.img.naturalHeight > p.img.naturalWidth); };
+    p.img.src = image.url; p.img.alt = d.word;
+    p.imgCredit.textContent = image.photographer ? image.photographer + ' / Pexels' : 'Pexels';
+    p.imgCredit.href = image.pexelsUrl || 'https://www.pexels.com';
+    p.imgBox.style.display = '';
+  } else {
+    p.img.src = ''; p.imgBox.style.display = 'none';
+  }
   preloadAudio(d.word);
 }
 function setPos(slot, pos, animate) {
@@ -314,6 +328,7 @@ function speakCurrentWord(e) {
   speakWord(wordsData[currentIndex].word);
 }
 document.querySelectorAll('.audio-btn').forEach(b => b.addEventListener('click', speakCurrentWord));
+document.querySelectorAll('.word-image-credit').forEach(a => a.addEventListener('click', (e) => e.stopPropagation()));
 
 function triggerDayBanner(n) {
   dayBannerEl.textContent = '🚀 ' + n + '-KUN BOSHLANDI!';

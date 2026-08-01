@@ -80,6 +80,13 @@ body {
   align-items:center; text-align:center; border:1px solid var(--border); box-shadow:var(--shadow);
 }
 .card-front { background:linear-gradient(145deg,var(--card1),var(--card2)); color:var(--text); }
+.word-image { width:100%; max-width:220px; margin-bottom:18px; position:relative; }
+.word-image img { width:100%; height:140px; object-fit:cover; border-radius:18px; display:block;
+  border:1px solid var(--border); transition:height .15s ease; }
+.word-image.portrait img { height:280px; }
+.word-image-credit { position:absolute; bottom:6px; right:8px; font-size:.6rem; font-weight:600;
+  color:rgba(255,255,255,.85); background:rgba(0,0,0,.45); padding:2px 7px; border-radius:8px;
+  backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); }
 .word-main {
   font-size:2.6rem; font-weight:800; letter-spacing:.5px;
   background:linear-gradient(45deg,var(--word1),var(--word2));
