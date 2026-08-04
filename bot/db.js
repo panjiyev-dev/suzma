@@ -33,6 +33,21 @@ await client.execute(`
     UNIQUE(telegram_id, activity_date)
   )
 `);
+await client.execute(`
+  CREATE TABLE IF NOT EXISTS user_profile (
+    telegram_id INTEGER PRIMARY KEY,
+    answers TEXT NOT NULL DEFAULT '{}',
+    onboarding_step INTEGER NOT NULL DEFAULT 0,
+    plan_days INTEGER,
+    tone TEXT,
+    pain_point TEXT,
+    hope_point TEXT,
+    intro_completed INTEGER NOT NULL DEFAULT 0,
+    missed_streak INTEGER NOT NULL DEFAULT 0,
+    reset_count INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL
+  )
+`);
 
 export async function isRegistered(telegramId) {
   const res = await client.execute({ sql: 'SELECT 1 FROM users WHERE telegram_id = ?', args: [telegramId] });
@@ -93,6 +108,104 @@ export async function logActivity(telegramId) {
     sql: 'INSERT OR IGNORE INTO activity_log (telegram_id, activity_date) VALUES (?, ?)',
     args: [telegramId, today],
   });
+}
+
+export async function ensureProfile(telegramId) {
+  await client.execute({
+    sql: 'INSERT OR IGNORE INTO user_profile (telegram_id, created_at) VALUES (?, ?)',
+    args: [telegramId, new Date().toISOString()],
+  });
+}
+
+export async function getProfile(telegramId) {
+  const res = await client.execute({ sql: 'SELECT * FROM user_profile WHERE telegram_id = ?', args: [telegramId] });
+  const row = res.rows[0];
+  if (!row) return null;
+  return {
+    telegramId: Number(row.telegram_id),
+    answers: JSON.parse(row.answers || '{}'),
+    onboardingStep: Number(row.onboarding_step),
+    planDays: row.plan_days === null ? null : Number(row.plan_days),
+    tone: row.tone,
+    painPoint: row.pain_point,
+    hopePoint: row.hope_point,
+    introCompleted: Number(row.intro_completed) === 1,
+    missedStreak: Number(row.missed_streak),
+    resetCount: Number(row.reset_count),
+  };
+}
+
+export async function saveAnswer(telegramId, key, value) {
+  const profile = await getProfile(telegramId);
+  const answers = profile ? profile.answers : {};
+  answers[key] = value;
+  await client.execute({
+    sql: 'UPDATE user_profile SET answers = ? WHERE telegram_id = ?',
+    args: [JSON.stringify(answers), telegramId],
+  });
+}
+
+export async function setOnboardingStep(telegramId, step) {
+  await client.execute({
+    sql: 'UPDATE user_profile SET onboarding_step = ? WHERE telegram_id = ?',
+    args: [step, telegramId],
+  });
+}
+
+export async function setProfileResult(telegramId, { planDays, tone, painPoint, hopePoint }) {
+  await client.execute({
+    sql: 'UPDATE user_profile SET plan_days = ?, tone = ?, pain_point = ?, hope_point = ? WHERE telegram_id = ?',
+    args: [planDays, tone, painPoint, hopePoint, telegramId],
+  });
+}
+
+export async function setIntroCompleted(telegramId) {
+  await client.execute({
+    sql: 'UPDATE user_profile SET intro_completed = 1 WHERE telegram_id = ?',
+    args: [telegramId],
+  });
+}
+
+export async function getLastActiveDate(telegramId) {
+  const res = await client.execute({
+    sql: 'SELECT MAX(activity_date) d FROM activity_log WHERE telegram_id = ?',
+    args: [telegramId],
+  });
+  return res.rows[0] ? res.rows[0].d : null;
+}
+
+export async function setMissedStreak(telegramId, streak) {
+  await client.execute({
+    sql: 'UPDATE user_profile SET missed_streak = ? WHERE telegram_id = ?',
+    args: [streak, telegramId],
+  });
+}
+
+export async function incrementResetCount(telegramId) {
+  await client.execute({
+    sql: 'UPDATE user_profile SET reset_count = reset_count + 1, missed_streak = 0 WHERE telegram_id = ?',
+    args: [telegramId],
+  });
+}
+
+export async function getEngagementCheckList() {
+  const res = await client.execute(`
+    SELECT u.telegram_id, u.first_name,
+           p.tone, p.pain_point, p.hope_point, p.missed_streak,
+           (SELECT MAX(activity_date) FROM activity_log a WHERE a.telegram_id = u.telegram_id) AS last_active
+    FROM users u
+    JOIN user_profile p ON p.telegram_id = u.telegram_id
+    WHERE p.intro_completed = 1
+  `);
+  return res.rows.map((r) => ({
+    telegramId: Number(r.telegram_id),
+    firstName: r.first_name,
+    tone: r.tone,
+    painPoint: r.pain_point,
+    hopePoint: r.hope_point,
+    missedStreak: Number(r.missed_streak),
+    lastActive: r.last_active,
+  }));
 }
 
 function isoDateNDaysAgo(n) {

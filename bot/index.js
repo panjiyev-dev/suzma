@@ -4,13 +4,17 @@ import fs from 'node:fs';
 import path from 'node:path';
 import express from 'express';
 import cors from 'cors';
+import cron from 'node-cron';
 import { Bot, Keyboard, InlineKeyboard, webhookCallback } from 'grammy';
 import { verifyInitData } from './verifyInitData.js';
 import {
   isRegistered, registerUser,
   saveProgress, loadProgress, resetProgress,
   logActivity, getStats, listUsers,
+  ensureProfile, getProfile, saveAnswer, setOnboardingStep, setProfileResult,
+  setIntroCompleted, setMissedStreak, incrementResetCount, getEngagementCheckList,
 } from './db.js';
+import { analyzeProfile, generateEngagementMessage } from './gemini.js';
 
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const ADMIN_ID = Number(process.env.ADMIN_ID || 7847712643);
@@ -67,13 +71,101 @@ async function sendSubscribeGate(ctx) {
   );
 }
 
+/* ===== KIRISH ANKETASI (ro'yxatdan o'tgach, shaxsiy reja va ohangni aniqlash uchun) ===== */
+const STEPS = [
+  { key: 'goal', type: 'options', question: "Ingliz tilini nima uchun o'rganmoqchisiz?", options: ['💼 Ish/martaba', "✈️ Chet elga ko'chish/sayohat", '📝 IELTS/imtihon', '🌱 O\'z rivojlanishim uchun', '👨‍👩‍👧 Oilam/farzandlarim uchun'] },
+  { key: 'level', type: 'options', question: 'Hozirgi darajangizni qanday baholaysiz?', options: ['🔰 Deyarli bilmayman', '📘 Oz-moz tushunaman', "💬 O'rtacha gaplasha olaman"] },
+  { key: 'timeBudget', type: 'options', question: "Kuniga o'rganishga qancha vaqt ajrata olasiz?", options: ['10 daqiqa', '20 daqiqa', '30 daqiqa', '45+ daqiqa'] },
+  { key: 'pastAttempts', type: 'options', question: 'Ilgari necha marta til o\'rganishga urinib, tashlab ketgansiz?', options: ['Hech qachon', '1-2 marta', '3 martadan ko\'p'] },
+  { key: 'whyFailed', type: 'options', question: 'Nega tashlab ketgan edingiz?', options: ['⏰ Vaqt yo\'q edi', '😴 Zerikarli edi', '📉 Natija ko\'rinmadi', '🔋 Motivatsiya yo\'qoldi'], skip: (a) => a.pastAttempts === 'Hech qachon' },
+  { key: 'painPoint', type: 'options', question: "Agar ingliz tilini o'rganmasangiz, eng katta yo'qotishingiz nima bo'ladi?", options: ['💼 Ish imkoniyati', "✈️ Orzu qilgan mamlakat", '👨‍👩‍👧 Oilamga yordam berolmaslik', "😔 O'zimni past his qilish"] },
+  { key: 'hopePoint', type: 'text', question: "Agar bu tilni o'rgansangiz, hayotingiz qanday o'zgaradi? Bir necha so'z bilan yozing." },
+  { key: 'forWhom', type: 'options', question: 'Bu qaror kim uchun muhim?', options: ["Faqat o'zim uchun", 'Oilam/yaqinlarim uchun'] },
+  { key: 'selfType', type: 'options', question: "O'zingizni qanday odam deb bilasiz?", options: ['Menga tashqi bosim/eslatma kerak', "O'zim intizomliman"] },
+  { key: 'age', type: 'number', question: 'Necha yoshdasiz? (raqam bilan yozing)' },
+  { key: 'hasParents', type: 'options', question: 'Ota-onangiz bormi?', options: ['Ha', "Yo'q"], skip: (a) => Number(a.age) >= 25 },
+  { key: 'parentsInfo', type: 'text', question: 'Ular sizdan nimalarni kutishadi, qanday orzulari bor? Qisqacha yozing.', skip: (a) => Number(a.age) >= 25 || a.hasParents === "Yo'q" },
+  { key: 'hasChildren', type: 'options', question: 'Farzandlaringiz bormi?', options: ['Ha', "Yo'q"], skip: (a) => Number(a.age) < 25 },
+  { key: 'childrenInfo', type: 'text', question: 'Ularga qanday na\'muna bo\'lishni xohlaysiz? Qisqacha yozing.', skip: (a) => Number(a.age) < 25 || a.hasChildren === "Yo'q" },
+];
+
+function surveyKeyboard(stepIndex, options) {
+  const kb = new InlineKeyboard();
+  options.forEach((opt, i) => {
+    kb.text(opt, `survey_${stepIndex}_${i}`).row();
+  });
+  return kb;
+}
+
+async function askStep(ctx, fromIndex) {
+  const profile = await getProfile(ctx.from.id);
+  let idx = fromIndex;
+  while (idx < STEPS.length && STEPS[idx].skip && STEPS[idx].skip(profile.answers)) idx++;
+  if (idx >= STEPS.length) {
+    await finishOnboarding(ctx, profile);
+    return;
+  }
+  await setOnboardingStep(ctx.from.id, idx);
+  const step = STEPS[idx];
+  if (step.type === 'options') {
+    await ctx.reply(step.question, { reply_markup: surveyKeyboard(idx, step.options) });
+  } else {
+    await ctx.reply(step.question);
+  }
+}
+
+async function startOnboarding(ctx) {
+  await ensureProfile(ctx.from.id);
+  await ctx.reply("Ajoyib! Endi sizni yaxshiroq tanishib, shaxsiy rejangizni tuzib berish uchun bir nechta savol beraman 🙂");
+  await askStep(ctx, 0);
+}
+
+async function finishOnboarding(ctx, profile) {
+  await ctx.reply("Rahmat! Javoblaringizni tahlil qilyapman...");
+  const result = await analyzeProfile(profile.answers);
+  await setProfileResult(ctx.from.id, result);
+  await setOnboardingStep(ctx.from.id, -1);
+  await ctx.reply(
+    `✅ Shaxsiy rejangiz tayyor: *${result.planDays} kunlik* dastur.\n\nEndi ilovani oching — u yerda kirish darsini (mnemonika texnikasi va amaliy mashqlar) o'tib, so'zlarni o'rganishni boshlaysiz.`,
+    { parse_mode: 'Markdown', reply_markup: openAppKeyboard() }
+  );
+}
+
+bot.callbackQuery(/^survey_(\d+)_(\d+)$/, async (ctx) => {
+  const stepIndex = Number(ctx.match[1]);
+  const optionIndex = Number(ctx.match[2]);
+  const profile = await getProfile(ctx.from.id);
+  if (!profile || profile.onboardingStep !== stepIndex) {
+    await ctx.answerCallbackQuery();
+    return;
+  }
+  const step = STEPS[stepIndex];
+  const value = step.options[optionIndex];
+  await ctx.answerCallbackQuery();
+  try { await ctx.editMessageReplyMarkup({ reply_markup: undefined }); } catch (e) {}
+  await saveAnswer(ctx.from.id, step.key, value);
+  await askStep(ctx, stepIndex + 1);
+});
+
 /* ===== FOYDALANUVCHI OQIMI ===== */
+async function resumeOrOpenApp(ctx) {
+  const profile = await getProfile(ctx.from.id);
+  if (!profile || profile.planDays === null) {
+    if (profile && profile.onboardingStep >= 0) {
+      await ctx.reply("Anketani davom ettiramiz 🙂");
+      await askStep(ctx, profile.onboardingStep);
+    } else {
+      await startOnboarding(ctx);
+    }
+    return;
+  }
+  await ctx.reply("Ilovani ochish uchun tugmani bosing 👇", { reply_markup: openAppKeyboard() });
+}
+
 bot.command('start', async (ctx) => {
   if (await isRegistered(ctx.from.id)) {
-    await ctx.reply(
-      `Xush kelibsiz, ${ctx.from.first_name}! Siz allaqachon ro'yxatdan o'tgansiz.`,
-      { reply_markup: openAppKeyboard() }
-    );
+    await ctx.reply(`Xush kelibsiz, ${ctx.from.first_name}! Siz allaqachon ro'yxatdan o'tgansiz.`);
+    await resumeOrOpenApp(ctx);
     return;
   }
   await sendSubscribeGate(ctx);
@@ -92,7 +184,7 @@ bot.callbackQuery('check_sub', async (ctx) => {
 
   if (await isRegistered(ctx.from.id)) {
     try { await ctx.editMessageText(`Xush kelibsiz, ${ctx.from.first_name}! Siz allaqachon ro'yxatdan o'tgansiz.`); } catch (e) {}
-    await ctx.reply("Ilovani ochish uchun tugmani bosing 👇", { reply_markup: openAppKeyboard() });
+    await resumeOrOpenApp(ctx);
     return;
   }
 
@@ -128,7 +220,7 @@ bot.on('message:contact', async (ctx) => {
     phoneNumber: contact.phone_number,
   });
   await ctx.reply("✅ Ro'yxatdan o'tdingiz!", { reply_markup: { remove_keyboard: true } });
-  await ctx.reply("So'zlarni o'rganishni boshlang 👇", { reply_markup: openAppKeyboard() });
+  await startOnboarding(ctx);
 
   if (ctx.from.id !== ADMIN_ID) {
     const uname = ctx.from.username ? ' (@' + ctx.from.username + ')' : '';
@@ -196,7 +288,29 @@ bot.callbackQuery(/^users_(\d+)$/, async (ctx) => {
 /* ===== CATCH-ALL (har doim eng oxirida bo'lishi kerak) ===== */
 bot.on('message:text', async (ctx) => {
   if (ctx.message.text.startsWith('/')) return;
+
   if (await isRegistered(ctx.from.id)) {
+    const profile = await getProfile(ctx.from.id);
+    if (profile && profile.onboardingStep >= 0) {
+      const step = STEPS[profile.onboardingStep];
+      if (step.type === 'options') {
+        await ctx.reply("Iltimos, yuqoridagi tugmalardan birini tanlang 👆");
+        return;
+      }
+      const text = ctx.message.text.trim();
+      if (step.type === 'number') {
+        const num = parseInt(text, 10);
+        if (isNaN(num) || num < 1 || num > 120) {
+          await ctx.reply("Iltimos, yoshingizni faqat raqam bilan yozing (masalan: 23).");
+          return;
+        }
+        await saveAnswer(ctx.from.id, step.key, num);
+      } else {
+        await saveAnswer(ctx.from.id, step.key, text);
+      }
+      await askStep(ctx, profile.onboardingStep + 1);
+      return;
+    }
     await ctx.reply("Ilovani ochish uchun tugmani bosing 👇", { reply_markup: openAppKeyboard() });
   } else {
     await ctx.reply("Avval ro'yxatdan o'ting: /start buyrug'ini yuboring.");
@@ -232,7 +346,17 @@ function withAuth(req, res, next) {
 
 app.post('/api/progress/load', withAuth, async (req, res) => {
   await logActivity(req.tgUser.id);
-  res.json({ progress: await loadProgress(req.tgUser.id) });
+  const profile = await getProfile(req.tgUser.id);
+  res.json({
+    progress: await loadProgress(req.tgUser.id),
+    profile: profile ? { planDays: profile.planDays, introCompleted: profile.introCompleted } : null,
+  });
+});
+
+app.post('/api/profile/complete-intro', withAuth, async (req, res) => {
+  await setIntroCompleted(req.tgUser.id);
+  await logActivity(req.tgUser.id);
+  res.json({ ok: true });
 });
 
 app.post('/api/progress/save', withAuth, async (req, res) => {
@@ -291,6 +415,44 @@ app.get('/api/tts', async (req, res) => {
 if (PUBLIC_URL) {
   app.post('/telegram-webhook', webhookCallback(bot, 'express', { secretToken: WEBHOOK_SECRET }));
 }
+
+/* ===== KUNLIK FAOLLIK NAZORATI (1/2/3 kun kirmagan foydalanuvchilarga eslatma, 3 kunda reset) ===== */
+async function runEngagementCheck() {
+  const list = await getEngagementCheckList();
+  const today = new Date();
+  for (const u of list) {
+    if (!u.lastActive) continue;
+    const last = new Date(u.lastActive + 'T00:00:00');
+    const daysSince = Math.floor((today - last) / 86400000);
+
+    if (daysSince <= 0) {
+      if (u.missedStreak !== 0) await setMissedStreak(u.telegramId, 0);
+      continue;
+    }
+    if (daysSince < 1 || daysSince > 3 || daysSince <= u.missedStreak) continue;
+
+    const level = daysSince;
+    try {
+      const message = await generateEngagementMessage({
+        level, tone: u.tone, painPoint: u.painPoint, hopePoint: u.hopePoint, firstName: u.firstName,
+      });
+      await bot.api.sendMessage(u.telegramId, message, { reply_markup: openAppKeyboard() });
+    } catch (e) {
+      console.error('Eslatma yuborishda xato:', u.telegramId, e.message);
+    }
+
+    if (level === 3) {
+      await resetProgress(u.telegramId);
+      await incrementResetCount(u.telegramId);
+    } else {
+      await setMissedStreak(u.telegramId, level);
+    }
+  }
+}
+
+cron.schedule('0 9 * * *', () => {
+  runEngagementCheck().catch((e) => console.error('runEngagementCheck xatosi:', e));
+}, { timezone: 'Asia/Tashkent' });
 
 app.listen(PORT, () => console.log(`Server ${PORT}-portda ishga tushdi`));
 

@@ -15,14 +15,13 @@ async function apiCall(path, body) {
   } catch (e) { return null; }
 }
 async function loadServerProgress() {
-  const res = await apiCall('/api/progress/load', {});
-  return res ? res.progress : null;
+  return await apiCall('/api/progress/load', {});
 }
 let syncTimer = null;
 function scheduleSync() {
   clearTimeout(syncTimer);
   syncTimer = setTimeout(() => {
-    const day = wordsData[currentIndex] ? wordsData[currentIndex].day : 1;
+    const day = wordsData[currentIndex] ? dayOf(currentIndex) : 1;
     apiCall('/api/progress/save', { currentIndex, currentDay: day, srsLearned: srs.learned, srsReviewed: srs.reviewed });
   }, 800);
 }
@@ -94,13 +93,44 @@ const INTERVALS = [3, 7, 14];
 
 let currentIndex = 0, transitioning = false, justSwiped = false;
 
-const dayFirst = {}, dayLast = {}, dayCount = {};
-wordsData.forEach((w, i) => {
-  if (dayFirst[w.day] === undefined) dayFirst[w.day] = i;
-  dayLast[w.day] = i; dayCount[w.day] = (dayCount[w.day] || 0) + 1;
-});
-const allDays = Object.keys(dayCount).map(Number).sort((a, b) => a - b);
-const TOTAL_DAYS = allDays.length;
+/* Shaxsiy reja uzunligi (30-45 kun) — anketa Gemini tahlili asosida serverdan keladi.
+   Kun taqsimoti so'zlarning statik .day maydonidan emas, runtime'da hisoblanadi,
+   shunda bir xil 4946 ta so'z istalgan (30-45) kun soniga qayta taqsimlanishi mumkin. */
+let dayFirst = {}, dayLast = {}, dayCount = {}, allDays = [], TOTAL_DAYS = 30, wordDay = [];
+
+function computeDayCounts(totalWords, planDays) {
+  const rampDays = Math.min(10, planDays);
+  const weights = [];
+  for (let d = 1; d <= planDays; d++) {
+    weights.push(d <= rampDays ? (rampDays === 1 ? 1 : 0.3 + 0.7 * (d - 1) / (rampDays - 1)) : 1);
+  }
+  const weightSum = weights.reduce((a, b) => a + b, 0);
+  const counts = weights.map((w) => Math.max(10, Math.floor((w / weightSum) * totalWords)));
+
+  let remainder = totalWords - counts.reduce((a, b) => a + b, 0);
+  let i = counts.length - 1;
+  while (remainder > 0) { counts[i] += 1; remainder--; i = (i - 1 + counts.length) % counts.length; }
+  while (remainder < 0) { if (counts[i] > 10) { counts[i] -= 1; remainder++; } i = (i - 1 + counts.length) % counts.length; }
+  return counts;
+}
+
+function dayOf(index) { return wordDay[index]; }
+
+function rebuildDayIndex(planDays) {
+  planDays = Math.min(45, Math.max(30, Math.round(planDays) || 30));
+  const counts = computeDayCounts(wordsData.length, planDays);
+  dayFirst = {}; dayLast = {}; dayCount = {}; wordDay = new Array(wordsData.length);
+  let idx = 0;
+  for (let d = 1; d <= planDays; d++) {
+    dayFirst[d] = idx;
+    for (let k = 0; k < counts[d - 1]; k++) { wordDay[idx] = d; idx++; }
+    dayLast[d] = idx - 1;
+    dayCount[d] = counts[d - 1];
+  }
+  allDays = Object.keys(dayCount).map(Number).sort((a, b) => a - b);
+  TOTAL_DAYS = allDays.length;
+}
+rebuildDayIndex(30);
 
 let srs = { learned: {}, reviewed: {} };
 try { const s = JSON.parse(localStorage.getItem(KEY_SRS)); if (s && s.learned) srs = s; } catch (e) {}
@@ -154,11 +184,11 @@ function setPos(slot, pos, animate) {
   if (!animate) void slot.offsetHeight;
 }
 function updateTopBar(index) {
-  const d = wordsData[index];
-  dayBadgeEl.innerHTML = d.day + '-KUN <span class="caret">▼</span>';
+  const day = dayOf(index);
+  dayBadgeEl.innerHTML = day + '-KUN <span class="caret">▼</span>';
   progressTextEl.textContent = (index + 1) + ' / ' + wordsData.length;
   const pc = document.getElementById('pCurrent'), pd = document.getElementById('pDay');
-  if (pc) pc.textContent = index + 1; if (pd) pd.textContent = d.day;
+  if (pc) pc.textContent = index + 1; if (pd) pd.textContent = day;
 }
 function saveIndex() { localStorage.setItem(KEY_INDEX, currentIndex.toString()); scheduleSync(); }
 function toast(msg) { toastEl.textContent = msg; toastEl.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(() => toastEl.classList.remove('show'), 1900); }
@@ -203,7 +233,7 @@ function onReachDayEnd(day) {
   refreshHomeIfVisible(); updateNavBadge();
 }
 function maybeMarkProgress(index) {
-  const day = wordsData[index].day;
+  const day = dayOf(index);
   if (index === dayLast[day]) onReachDayEnd(day);
 }
 
@@ -220,19 +250,44 @@ async function init() {
     currentIndex = parseInt(saved, 10);
     if (currentIndex < 0 || currentIndex >= wordsData.length) currentIndex = 0;
   }
+  const cachedPlanDays = parseInt(localStorage.getItem(KEY_PLAN_DAYS), 10);
+  if (!isNaN(cachedPlanDays) && cachedPlanDays !== TOTAL_DAYS) {
+    rebuildDayIndex(cachedPlanDays);
+    if (currentIndex >= wordsData.length) currentIndex = wordsData.length - 1;
+  }
   document.getElementById('totalWords').textContent = wordsData.length;
   renderCurrentState();
+  if (shouldShowIntro()) openIntro(TOTAL_DAYS);
 
-  const remote = await loadServerProgress();
-  if (remote) {
+  const res = await loadServerProgress();
+  let changed = false;
+
+  if (res && res.progress) {
+    const remote = res.progress;
     currentIndex = Math.min(Math.max(remote.currentIndex || 0, 0), wordsData.length - 1);
     srs = { learned: remote.srsLearned || {}, reviewed: remote.srsReviewed || {} };
     localStorage.setItem(KEY_INDEX, currentIndex.toString());
     localStorage.setItem(KEY_SRS, JSON.stringify(srs));
-    renderCurrentState();
-  } else {
-    scheduleSync();
+    changed = true;
   }
+
+  if (res && res.profile) {
+    if (res.profile.planDays && res.profile.planDays !== TOTAL_DAYS) {
+      rebuildDayIndex(res.profile.planDays);
+      localStorage.setItem(KEY_PLAN_DAYS, res.profile.planDays.toString());
+      if (currentIndex >= wordsData.length) currentIndex = wordsData.length - 1;
+      changed = true;
+    }
+    if (res.profile.introCompleted) {
+      localStorage.setItem(KEY_INTRO, '1');
+      introOverlayEl.classList.remove('show');
+    } else if (res.profile.planDays) {
+      openIntro(TOTAL_DAYS);
+    }
+  }
+
+  if (changed) renderCurrentState();
+  if (!res) scheduleSync();
 }
 
 /* ===== REELS NAV ===== */
@@ -244,7 +299,7 @@ function navigate(dir) {
 
   transitioning = true;
   const active = slots[activeSlot], incoming = slots[1 - activeSlot];
-  const oldDay = wordsData[currentIndex].day, newDay = wordsData[ni].day;
+  const oldDay = dayOf(currentIndex), newDay = dayOf(ni);
 
   renderInto(incoming, ni);
   setPos(incoming, dir === 'next' ? 'below' : 'above', false);
@@ -365,7 +420,7 @@ function isDayLocked(day) {
   return !srs.learned[day] && day !== nextNewDay();
 }
 function dayStatus(day) {
-  if (wordsData[currentIndex].day === day) return 'current';
+  if (dayOf(currentIndex) === day) return 'current';
   if (getDueReviews().some(r => r.day === day)) return 'due';
   if (srs.learned[day]) return 'learned';
   if (isDayLocked(day)) return 'locked';
@@ -626,7 +681,7 @@ function renderHome() {
   document.getElementById('continueCard').innerHTML =
     '<div class="hero-card">' +
       '<div class="lbl">DAVOM ETISH</div>' +
-      '<div class="big">' + d.day + '-kun · ' + d.word + '</div>' +
+      '<div class="big">' + dayOf(currentIndex) + '-kun · ' + d.word + '</div>' +
       '<div class="sub">' + (currentIndex + 1) + ' / ' + wordsData.length + ' so\'z</div>' +
       '<div class="hero-bar"><span style="width:' + pct + '%"></span></div>' +
       '<button class="go" id="continueBtn">Davom etish →</button>' +
@@ -738,6 +793,103 @@ document.getElementById('confirmResetBtn').addEventListener('click', async () =>
   clearTimeout(resetSuccessEl._t);
   resetSuccessEl._t = setTimeout(() => resetSuccessEl.classList.remove('show'), 1700);
 });
+
+/* ===== MAJBURIY KIRISH DARSI (mnemonika texnikasi + amaliy mashqlar) ===== */
+const KEY_INTRO = 'mnemo_intro_completed_v1';
+const KEY_PLAN_DAYS = 'mnemo_plan_days_v1';
+const introOverlayEl = document.getElementById('introOverlay');
+const introScreens = [...document.querySelectorAll('.intro-screen')];
+const introDotsEl = document.getElementById('introDots');
+introScreens.forEach((_, i) => {
+  const dot = document.createElement('span');
+  dot.className = 'dot' + (i === 0 ? ' active' : '');
+  introDotsEl.appendChild(dot);
+});
+let introEx1Started = false;
+
+function introGoTo(index) {
+  if (index < 0 || index >= introScreens.length) return;
+  introScreens.forEach((s, i) => s.classList.toggle('active', i === index));
+  [...introDotsEl.children].forEach((d, i) => d.classList.toggle('active', i === index));
+  if (index === 2 && !introEx1Started) {
+    introEx1Started = true;
+    setTimeout(() => {
+      document.getElementById('introEx1Words').style.display = 'none';
+      document.getElementById('introEx1Prompt').style.display = 'none';
+      document.getElementById('introEx1Result').style.display = 'block';
+    }, 10000);
+  }
+}
+
+document.querySelectorAll('.intro-next-btn').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    const idx = introScreens.indexOf(btn.closest('.intro-screen'));
+    introGoTo(idx + 1);
+  });
+});
+document.querySelectorAll('.intro-back-btn').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    const idx = introScreens.indexOf(btn.closest('.intro-screen'));
+    introGoTo(idx - 1);
+  });
+});
+
+document.getElementById('introEx1Check').addEventListener('click', () => {
+  const input = document.getElementById('introEx1Input');
+  const n = parseInt(input.value, 10);
+  if (isNaN(n) || n < 0 || n > 10) {
+    input.focus();
+    haptic('warning');
+    return;
+  }
+  const fb = document.getElementById('introEx1Feedback');
+  if (n >= 8) {
+    fb.textContent = `${n} tasi — juda kuchli xotira! Lekin bu ancha vaqt va zo'r berishni talab qiladi. Mnemonika esa buni deyarli avtomatik qiladi — hozir ko'ramiz.`;
+  } else if (n >= 5) {
+    fb.textContent = `${n} tasi — yomon emas, lekin ko'pchilik odam standart usulda atigi 3-4 tasini eslaydi. Mnemonika esa buni tubdan o'zgartiradi — hozir ko'ramiz qanday.`;
+  } else {
+    fb.textContent = `${n} tasi — bu ko'pchilikda shunday, hech qanday muammo yo'q. Standart yodlash shunday ishlaydi. Endi buni butunlay o'zgartiramiz.`;
+  }
+  fb.style.display = 'block';
+  document.getElementById('introEx1Next').style.display = 'block';
+  haptic('success');
+});
+
+document.getElementById('introEx2Check').addEventListener('click', () => {
+  const textarea = document.getElementById('introEx2Text');
+  const text = textarea.value.trim();
+  if (text.length < 15) {
+    textarea.focus();
+    haptic('warning');
+    return;
+  }
+  const targetWords = ['telefon', 'qovun', 'uy', 'quyon', 'olma'];
+  const lower = text.toLowerCase();
+  const usedCount = targetWords.filter((w) => lower.includes(w)).length;
+  const fb = document.getElementById('introEx2Feedback');
+  if (usedCount >= 4) {
+    fb.textContent = `Zo'r! ${usedCount}/5 so'zni hikoyangizga bog'ladingiz. Endi ko'zingizni yumib, shu 5 ta so'zni tartib bilan eslashga harakat qiling — ko'rasiz, bu safar ancha osonroq chiqadi.`;
+  } else {
+    fb.textContent = `Hikoyangiz yozildi. Keyingi safar barcha 5 ta so'zni hikoyaga aniq kiritishga harakat qiling — shunda bog'lanish yanada kuchli bo'ladi. Endi ko'zingizni yumib, shu 5 ta so'zni tartib bilan eslashga harakat qiling.`;
+  }
+  fb.style.display = 'block';
+  document.getElementById('introEx2Next').style.display = 'block';
+  haptic('success');
+});
+
+async function finishIntro() {
+  localStorage.setItem(KEY_INTRO, '1');
+  introOverlayEl.classList.remove('show');
+  await apiCall('/api/profile/complete-intro', {});
+  haptic('success');
+}
+document.getElementById('introFinishBtn').addEventListener('click', finishIntro);
+
+function shouldShowIntro() { return localStorage.getItem(KEY_INTRO) !== '1'; }
+function openIntro(planDays) {
+  document.getElementById('introPlanDays').textContent = planDays || TOTAL_DAYS;
+  introOverlayEl.classList.add('show');
+}
 
 /* ===== START ===== */
 tgInit();

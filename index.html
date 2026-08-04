@@ -201,6 +201,98 @@
       </div>
     </div>
 
+    <!-- ============ MAJBURIY KIRISH DARSI OVERLAY ============ -->
+    <div class="intro-overlay" id="introOverlay">
+      <div class="intro-dots" id="introDots"></div>
+
+      <div class="intro-screen active" id="introScreen-0">
+        <div class="review-intro-icon">😩</div>
+        <div class="review-intro-title">Nega odatiy usul ishlamaydi?</div>
+        <div class="intro-body">
+          <p>Ingliz tilini o'rganuvchi inson vaqtining <b>90%</b>ini yangi so'zlarni yodlashga sarflaydi. Standart uslub — uch ustunli ro'yxat (so'z / tarjima / talaffuz) — yordamida soatiga atigi <b>20-30 ta</b> so'z yodlash mumkin.</p>
+          <p>Ammo bir hafta o'tgach, o'sha so'zlardan atigi <b>3-4 tasi</b> esda qoladi. Sabab — bu passiv yodlash, miya faol ishlamaydi.</p>
+          <p>Biz sizga <b>mnemonika</b> texnikasini o'rgatamiz — bu orqali soatiga 150+ so'z yodlash va uni uzoq muddat esda saqlash mumkin.</p>
+        </div>
+        <button class="review-start-btn intro-next-btn">Davom etish →</button>
+      </div>
+
+      <div class="intro-screen" id="introScreen-1">
+        <button class="intro-back-btn">‹</button>
+        <div class="review-intro-icon">🧠</div>
+        <div class="review-intro-title">Miyangizning yashirin kuchi</div>
+        <div class="intro-body">
+          <p>Miyamiz ikki qismdan iborat. <b>Chap yarim shar</b> — mantiq, raqam, matn uchun javobgar, atigi <b>10%</b> xotira salohiyatiga ega.</p>
+          <p><b>O'ng yarim shar</b> — hissiyot va tasavvur uchun javobgar, <b>90%</b> xotira salohiyatiga ega, shundan 80%i tasavvurga tegishli.</p>
+          <p>Savol: sizga o'qigan kitobingiz yaxshiroq esda qoladimi yoki tomosha qilgan filmingizmi? Albatta — <b>film</b>. Chunki u avtomatik tasavvurni ishga tushiradi.</p>
+        </div>
+        <button class="review-start-btn intro-next-btn">Davom etish →</button>
+      </div>
+
+      <div class="intro-screen" id="introScreen-2">
+        <button class="intro-back-btn">‹</button>
+        <div class="review-intro-icon">🧪</div>
+        <div class="review-intro-title">Amaliy sinov</div>
+        <div class="intro-body">
+          <p id="introEx1Prompt">Quyidagi 10 ta so'zni <b>10 soniya</b> ichida yodlab olishga harakat qiling:</p>
+          <div class="intro-word-list" id="introEx1Words">Banan · Ruchka · O'rmon · Muzlatgich · Gilam · Oshpaz · Osmon · Mashina · Stadion · Ayiq</div>
+          <div class="intro-ex-result" id="introEx1Result" style="display:none">
+            <p>Nechtasini ketma-ket, xatosiz eslay oldingiz?</p>
+            <input type="number" id="introEx1Input" min="0" max="10" class="intro-input" placeholder="0-10">
+            <button class="review-start-btn" id="introEx1Check">Tekshirish</button>
+            <p class="intro-ex-feedback" id="introEx1Feedback" style="display:none">Ko'pchilik odam standart usulda atigi 3-4 tasini eslaydi. Mnemonika esa buni tubdan o'zgartiradi — hozir ko'ramiz qanday.</p>
+          </div>
+        </div>
+        <button class="review-start-btn intro-next-btn" id="introEx1Next" style="display:none">Davom etish →</button>
+      </div>
+
+      <div class="intro-screen" id="introScreen-3">
+        <button class="intro-back-btn">‹</button>
+        <div class="review-intro-icon">🔗</div>
+        <div class="review-intro-title">Assotsiatsiya zanjiri siri</div>
+        <div class="intro-body">
+          <p>Miyamiz neyronlardan tashkil topgan — ular bir-biriga bog'lanish (sinaps) orqali axborot uzatadi. Mnemonika aynan shunga asoslangan: <b>yangi so'zni eski, tanish obraz bilan bog'lash</b>.</p>
+          <p class="intro-example">"<b>Banan</b> ruchkada xat yozyapti → <b>ruchka</b> katta bo'lib o'rmonga aylandi → <b>o'rmon</b> ichi muzlatgichlarga to'la → <b>muzlatgich</b>ni ochsak, ichi gilamlarga to'la..."</p>
+          <p>Obraz qanchalik kulgili va g'alati bo'lsa, shunchalik yaxshi esda qoladi. Bitta so'zni keyingisiga ulab, kichik hikoya tuzasiz — xolos.</p>
+        </div>
+        <button class="review-start-btn intro-next-btn">Davom etish →</button>
+      </div>
+
+      <div class="intro-screen" id="introScreen-4">
+        <button class="intro-back-btn">‹</button>
+        <div class="review-intro-icon">✍️</div>
+        <div class="review-intro-title">Endi o'zingiz sinab ko'ring</div>
+        <div class="intro-body">
+          <p>Quyidagi 5 ta so'zni o'zingiz bir hikoyaga bog'lang: <b>Telefon · Qovun · Uy · Quyon · Olma</b></p>
+          <textarea id="introEx2Text" class="intro-textarea" placeholder="Masalan: Telefon jiringlab, ichidan katta qovun chiqib keldi..."></textarea>
+          <button class="review-start-btn" id="introEx2Check">Tekshirish</button>
+          <p class="intro-ex-feedback" id="introEx2Feedback" style="display:none">Ajoyib! Endi ko'zingizni yumib, shu 5 ta so'zni tartib bilan eslashga harakat qiling. Ko'rasiz — bu safar ancha osonroq chiqadi.</p>
+        </div>
+        <button class="review-start-btn intro-next-btn" id="introEx2Next" style="display:none">Davom etish →</button>
+      </div>
+
+      <div class="intro-screen" id="introScreen-5">
+        <button class="intro-back-btn">‹</button>
+        <div class="review-intro-icon">📏</div>
+        <div class="review-intro-title">Oltin qoidalar</div>
+        <div class="intro-body">
+          <p>✅ Obrazni <b>jonlantiring</b> — u kulgili, g'alati va harakatda bo'lsin.</p>
+          <p>✅ Bittada <b>5 tadan ortiq</b> so'z yodlamang — miya bir vaqtda ko'p axborotni ushlab turolmaydi.</p>
+          <p>✅ <b>96 soat qoidasi</b>: yangi so'zni 4 kun ichida bir marta qaytaring — aynan shu tamoyil asosida bizning <b>3·7·14 kunlik takrorlash tizimimiz</b> qurilgan!</p>
+        </div>
+        <button class="review-start-btn intro-next-btn">Davom etish →</button>
+      </div>
+
+      <div class="intro-screen" id="introScreen-6">
+        <button class="intro-back-btn">‹</button>
+        <div class="review-intro-icon">🎉</div>
+        <div class="review-intro-title">Tayyorsiz!</div>
+        <div class="intro-body">
+          <p>Endi sizning shaxsiy <b id="introPlanDays">35</b> kunlik rejangiz boshlanadi. Har kuni bir necha so'z, mnemonika bilan — va tizim 3·7·14 qoidasi asosida takrorlashni o'zi eslatadi.</p>
+        </div>
+        <button class="review-start-btn" id="introFinishBtn">Boshlash 🚀</button>
+      </div>
+    </div>
+
     <div class="toast" id="toast"></div>
   </div>
 
