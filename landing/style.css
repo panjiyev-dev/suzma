@@ -41,6 +41,9 @@ img, svg { max-width: 100%; display: block; }
   border-radius: 100px;
   padding: 16px 30px;
   font-size: 16px;
+  border: none;
+  cursor: pointer;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
   transition: transform .15s ease, opacity .15s ease;
 }
 .btn:active { transform: scale(.97); }
@@ -133,6 +136,126 @@ img, svg { max-width: 100%; display: block; }
 }
 .ps-highlight p { color: rgba(245, 244, 251, .75); }
 
+/* ===== NEGA ISHLAYDI (ilmiy asos) ===== */
+.science { max-width: 1180px; margin: 0 auto; padding: 8px 24px 56px; }
+.science h2 { font-size: 32px; font-weight: 800; margin-bottom: 12px; text-align: center; }
+.science-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 40px; }
+.science-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 20px; padding: 30px;
+}
+.science-card h3 { font: 700 18px 'Plus Jakarta Sans', sans-serif; margin-bottom: 16px; }
+.brain-split { display: flex; gap: 14px; margin-bottom: 14px; }
+.brain-half { flex: 1; border-radius: 16px; padding: 16px; text-align: center; }
+.brain-half.left { background: rgba(253, 121, 168, .1); border: 1px solid rgba(253, 121, 168, .25); }
+.brain-half.right { background: rgba(0, 206, 201, .1); border: 1px solid rgba(0, 206, 201, .25); }
+.brain-pct { font: 800 28px 'Plus Jakarta Sans', sans-serif; }
+.brain-half.left .brain-pct { color: var(--pink); }
+.brain-half.right .brain-pct { color: var(--teal); }
+.brain-lbl { font-size: 11.5px; color: var(--muted-soft); margin-top: 4px; line-height: 1.4; }
+.science-card p { font-size: 14px; line-height: 1.6; color: var(--muted); }
+.speed-compare { display: flex; flex-direction: column; gap: 12px; margin-bottom: 14px; }
+.speed-row { display: flex; align-items: center; gap: 12px; }
+.speed-lbl { width: 92px; flex-shrink: 0; font-size: 12.5px; color: var(--muted-soft); font-weight: 600; }
+.speed-bar-track { flex: 1; height: 14px; background: rgba(255, 255, 255, .05); border-radius: 8px; overflow: hidden; }
+.speed-bar { height: 100%; border-radius: 8px; }
+.speed-row.old .speed-bar { width: 20%; background: rgba(245, 244, 251, .3); }
+.speed-row.new .speed-bar { width: 100%; background: linear-gradient(90deg, var(--accent), var(--teal)); }
+.speed-num { width: 78px; flex-shrink: 0; text-align: right; font: 700 13px 'Plus Jakarta Sans', sans-serif; }
+
+/* ===== DARAJA JADVALI ===== */
+.levels { background: var(--bg2); padding: 56px 24px; }
+.levels-inner { max-width: 1180px; margin: 0 auto; }
+.levels h2 { font-size: 32px; font-weight: 800; text-align: center; margin-bottom: 12px; }
+.levels-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-top: 40px; }
+.level-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+  padding: 18px 14px; text-align: center; position: relative;
+}
+.level-card.current { border-color: var(--accent2); background: rgba(108, 92, 231, .12); }
+.level-words { font: 800 20px 'Plus Jakarta Sans', sans-serif; color: var(--accent2); }
+.level-name { font: 700 13px 'Plus Jakarta Sans', sans-serif; margin: 6px 0 4px; }
+.level-desc { font-size: 11px; color: var(--muted-soft); line-height: 1.4; }
+.level-tag {
+  position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+  background: linear-gradient(135deg, var(--accent), var(--accent2)); color: var(--bg);
+  font: 800 10px 'Plus Jakarta Sans', sans-serif; padding: 3px 10px; border-radius: 100px; white-space: nowrap;
+}
+
+.book-cta { display: flex; justify-content: center; margin-top: 36px; }
+.book-link {
+  font: 600 14px 'Plus Jakarta Sans', sans-serif; color: var(--accent2);
+  cursor: pointer; text-decoration: underline; text-underline-offset: 3px;
+  text-decoration-color: rgba(162, 155, 254, .4); transition: color .15s ease;
+}
+.book-link:hover { color: var(--teal); }
+
+/* ===== KITOB (TO'LIQ METODIKA) OVERLAY ===== */
+.book-overlay {
+  position: fixed; inset: 0; z-index: 300;
+  background: rgba(5, 5, 8, .82); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  display: flex; align-items: flex-start; justify-content: center;
+  padding: 32px 18px; overflow-y: auto;
+  opacity: 0; pointer-events: none; transition: opacity .3s ease;
+}
+.book-overlay.show { opacity: 1; pointer-events: auto; }
+.book-page {
+  position: relative; width: 100%; max-width: 760px;
+  background: #f6f0e2; color: #2b2620; border-radius: 20px;
+  padding: 20px 20px 70px;
+  box-shadow: 0 40px 100px -20px rgba(0, 0, 0, .6);
+  transform: translateY(24px); transition: transform .35s cubic-bezier(.34, 1.56, .64, 1);
+}
+.book-overlay.show .book-page { transform: translateY(0); }
+.book-close {
+  position: sticky; top: 0; float: right; z-index: 5;
+  width: 38px; height: 38px; border-radius: 12px; border: none;
+  background: rgba(43, 38, 32, .1); color: #2b2620; font-size: 16px; cursor: pointer;
+}
+.book-cover { text-align: center; padding: 30px 10px 10px; clear: both; }
+.book-cover-icon { font-size: 40px; margin-bottom: 10px; }
+.book-cover h2 {
+  font: 700 30px 'Lora', serif; margin-bottom: 8px; color: #1c1712;
+}
+.book-cover p { font: italic 400 15px 'Lora', serif; color: rgba(43, 38, 32, .65); }
+.book-body { padding: 10px 14px 0; font-family: 'Lora', serif; }
+.book-body h3 {
+  font: 700 22px 'Lora', serif; margin: 42px 0 6px; color: #1c1712;
+  border-top: 1px solid rgba(43, 38, 32, .15); padding-top: 28px;
+}
+.book-body h3:first-child { border-top: none; margin-top: 0; padding-top: 0; }
+.book-body h4 { font: 700 16px 'Plus Jakarta Sans', sans-serif; margin: 22px 0 8px; color: #6c5ce7; }
+.book-body p { font-size: 16px; line-height: 1.85; margin-bottom: 16px; color: #2b2620; }
+.book-body b { color: #1c1712; }
+.book-body .book-stat-list { font-size: 15.5px; line-height: 2; margin-bottom: 16px; }
+.word-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+  margin: 14px 0 20px; padding: 16px; background: rgba(43, 38, 32, .05); border-radius: 14px;
+}
+.word-grid span {
+  font: 600 13.5px 'Plus Jakarta Sans', sans-serif; background: #fff; border: 1px solid rgba(43, 38, 32, .1);
+  border-radius: 9px; padding: 7px 6px; text-align: center;
+}
+.book-example {
+  background: rgba(108, 92, 231, .08); border-left: 3px solid #6c5ce7; border-radius: 0 12px 12px 0;
+  padding: 16px 18px; font: italic 400 14.5px/1.8 'Lora', serif; margin: 16px 0 20px; color: #33291f;
+}
+.book-quote {
+  font: 600 italic 17px/1.6 'Lora', serif; color: #6c5ce7; text-align: center;
+  padding: 8px 20px; margin: 24px 0;
+}
+.book-end { text-align: center; padding: 40px 10px 10px; }
+.book-end .btn { margin-top: 14px; }
+
+@media (max-width: 560px) {
+  .book-page { padding: 14px 14px 50px; }
+  .book-cover h2 { font-size: 24px; }
+  .book-body { padding: 6px 4px 0; }
+  .book-body h3 { font-size: 19px; }
+  .book-body p { font-size: 15px; }
+  .word-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
 /* ===== FEATURES ===== */
 .features { max-width: 1180px; margin: 0 auto; padding: 56px 24px; text-align: center; }
 .features h2 { font-size: 32px; font-weight: 800; margin-bottom: 12px; }
@@ -152,7 +275,7 @@ img, svg { max-width: 100%; display: block; }
 /* ===== HOW IT WORKS ===== */
 .how { background: var(--bg2); padding: 56px 24px; }
 .how h2 { max-width: 1180px; margin: 0 auto 40px; font-size: 28px; font-weight: 800; text-align: center; }
-.how-grid { max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+.how-grid { max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: repeat(5, 1fr); gap: 20px; }
 .how-step { text-align: center; }
 .how-num {
   width: 46px; height: 46px; border-radius: 14px; margin: 0 auto 16px;
@@ -283,6 +406,8 @@ img, svg { max-width: 100%; display: block; }
   .hero-copy h1 { font-size: 38px; }
   .feature-grid { grid-template-columns: repeat(2, 1fr); }
   .how-grid { grid-template-columns: repeat(2, 1fr); }
+  .science-grid { grid-template-columns: 1fr; }
+  .levels-grid { grid-template-columns: repeat(3, 1fr); }
   .demo-row { grid-template-columns: 1fr; margin-top: 48px; padding-top: 40px; }
   .demo-visual { order: -1; }
   .demo-copy { text-align: center; }
@@ -298,6 +423,11 @@ img, svg { max-width: 100%; display: block; }
   .feature-grid { grid-template-columns: 1fr; }
   .how { padding: 40px 18px; }
   .how-grid { grid-template-columns: 1fr 1fr; gap: 14px; }
+  .science { padding: 8px 18px 40px; }
+  .levels { padding: 40px 18px; }
+  .levels-grid { grid-template-columns: 1fr 1fr; }
+  .speed-lbl { width: 68px; font-size: 11px; }
+  .speed-num { width: 60px; font-size: 12px; }
   .stats { gap: 24px; }
   .stat-num { font-size: 32px; }
   .cta-box { padding: 36px 20px; }

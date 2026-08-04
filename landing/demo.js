@@ -129,3 +129,14 @@ if (footerEl && 'IntersectionObserver' in window) {
 
 bottomAlertClose.addEventListener('click', hideBottomAlert);
 bottomAlert.addEventListener('click', (e) => { if (e.target === bottomAlert) hideBottomAlert(); });
+
+/* ===== TO'LIQ METODIKA (KITOB) OVERLAY ===== */
+const bookOverlay = document.getElementById('bookOverlay');
+const bookCloseBtn = document.getElementById('bookCloseBtn');
+
+function openBook() { bookOverlay.classList.add('show'); document.body.style.overflow = 'hidden'; }
+function closeBook() { bookOverlay.classList.remove('show'); document.body.style.overflow = ''; }
+
+document.querySelectorAll('.open-book-btn').forEach((btn) => btn.addEventListener('click', openBook));
+bookCloseBtn.addEventListener('click', closeBook);
+bookOverlay.addEventListener('click', (e) => { if (e.target === bookOverlay) closeBook(); });
