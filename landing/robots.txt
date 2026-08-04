@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://5000-words.uz/sitemap.xml

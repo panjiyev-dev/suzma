@@ -380,6 +380,24 @@ img, svg { max-width: 100%; display: block; }
 }
 .stat-lbl { font-size: 13px; color: var(--muted-soft); margin-top: 6px; }
 
+/* ===== FAQ ===== */
+.faq { max-width: 800px; margin: 0 auto; padding: 56px 24px; }
+.faq h2 { font-size: 28px; font-weight: 800; text-align: center; margin-bottom: 28px; }
+.faq-item {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; padding: 18px 22px; margin-bottom: 12px;
+}
+.faq-item summary {
+  font: 700 15.5px 'Plus Jakarta Sans', sans-serif; cursor: pointer;
+  list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.faq-item summary::-webkit-details-marker { display: none; }
+.faq-item summary::after {
+  content: '+'; font-size: 20px; color: var(--accent2); flex-shrink: 0; transition: transform .2s ease;
+}
+.faq-item[open] summary::after { transform: rotate(45deg); }
+.faq-item p { font-size: 14.5px; line-height: 1.7; color: var(--muted); margin-top: 14px; }
+
 /* ===== CTA FINAL ===== */
 .cta-final { max-width: 1180px; margin: 0 auto; padding: 0 24px 56px; }
 .cta-box {
