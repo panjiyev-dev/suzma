@@ -8,9 +8,9 @@ import cron from 'node-cron';
 import { Bot, Keyboard, InlineKeyboard, webhookCallback } from 'grammy';
 import { verifyInitData } from './verifyInitData.js';
 import {
-  isRegistered, registerUser,
+  isRegistered, registerUser, getUser,
   saveProgress, loadProgress, resetProgress,
-  logActivity, getStats, listUsers,
+  logActivity, getStats, listUsers, listUsersFull,
   ensureProfile, getProfile, saveAnswer, setOnboardingStep, setProfileResult,
   setIntroCompleted, setMissedStreak, incrementResetCount, getEngagementCheckList,
 } from './db.js';
@@ -26,6 +26,8 @@ const PUBLIC_URL = process.env.PUBLIC_URL ? process.env.PUBLIC_URL.replace(/\/+$
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || crypto.randomBytes(24).toString('hex');
 const PORT = process.env.PORT || 3000;
 const PAGE_SIZE = 10;
+const ADMIN_PANEL_USER = process.env.ADMIN_PANEL_USER || 'admin';
+const ADMIN_PANEL_PASSWORD = process.env.ADMIN_PANEL_PASSWORD || '';
 
 if (!BOT_TOKEN) {
   throw new Error('BOT_TOKEN topilmadi. .env faylini .env.example asosida yarating.');
@@ -36,6 +38,20 @@ const bot = new Bot(BOT_TOKEN);
 function openAppKeyboard() {
   return new InlineKeyboard().webApp('🚀 Ilovani ochish', WEBAPP_URL);
 }
+
+const FEEDBACK_BTN_TEXT = '💬 Fikr va shikoyat';
+function mainMenuKeyboard() {
+  return new Keyboard()
+    .webApp('📱 Ilova', WEBAPP_URL)
+    .text(FEEDBACK_BTN_TEXT)
+    .resized();
+}
+
+const awaitingFeedback = new Set();
+bot.hears(FEEDBACK_BTN_TEXT, async (ctx) => {
+  awaitingFeedback.add(ctx.from.id);
+  await ctx.reply("Fikr yoki shikoyatingizni yozib yuboring — to'g'ridan-to'g'ri adminga yetadi 👇", { reply_markup: { remove_keyboard: true } });
+});
 
 const contactKeyboard = new Keyboard()
   .requestContact('📱 Raqamni yuborish')
@@ -129,6 +145,7 @@ async function finishOnboarding(ctx, profile) {
     `✅ Shaxsiy rejangiz tayyor: *${result.planDays} kunlik* dastur.\n\nEndi ilovani oching — u yerda kirish darsini (mnemonika texnikasi va amaliy mashqlar) o'tib, so'zlarni o'rganishni boshlaysiz.`,
     { parse_mode: 'Markdown', reply_markup: openAppKeyboard() }
   );
+  await ctx.reply('Pastdagi menyudan ham foydalanishingiz mumkin 👇', { reply_markup: mainMenuKeyboard() });
 }
 
 bot.callbackQuery(/^survey_(\d+)_(\d+)$/, async (ctx) => {
@@ -159,7 +176,7 @@ async function resumeOrOpenApp(ctx) {
     }
     return;
   }
-  await ctx.reply("Ilovani ochish uchun tugmani bosing 👇", { reply_markup: openAppKeyboard() });
+  await ctx.reply("Ilovani ochish uchun pastdagi menyudan foydalaning 👇", { reply_markup: mainMenuKeyboard() });
 }
 
 bot.command('start', async (ctx) => {
@@ -289,6 +306,20 @@ bot.callbackQuery(/^users_(\d+)$/, async (ctx) => {
 bot.on('message:text', async (ctx) => {
   if (ctx.message.text.startsWith('/')) return;
 
+  if (awaitingFeedback.has(ctx.from.id)) {
+    awaitingFeedback.delete(ctx.from.id);
+    const u = await getUser(ctx.from.id);
+    const fullName = [ctx.from.first_name, ctx.from.last_name].filter(Boolean).join(' ') || "Noma'lum";
+    const uname = ctx.from.username ? '@' + ctx.from.username : '—';
+    const phone = (u && u.phoneNumber) || '—';
+    bot.api.sendMessage(
+      ADMIN_ID,
+      `💬 Yangi fikr-mulohaza\n👤 ${fullName} (${uname})\n📱 ${phone}\n🆔 ${ctx.from.id}\n\n${ctx.message.text}`
+    ).catch(() => {});
+    await ctx.reply('Rahmat! Fikringiz adminga yetkazildi 🙏', { reply_markup: mainMenuKeyboard() });
+    return;
+  }
+
   if (await isRegistered(ctx.from.id)) {
     const profile = await getProfile(ctx.from.id);
     if (profile && profile.onboardingStep >= 0) {
@@ -311,7 +342,7 @@ bot.on('message:text', async (ctx) => {
       await askStep(ctx, profile.onboardingStep + 1);
       return;
     }
-    await ctx.reply("Ilovani ochish uchun tugmani bosing 👇", { reply_markup: openAppKeyboard() });
+    await ctx.reply("Ilovani ochish uchun pastdagi menyudan foydalaning 👇", { reply_markup: mainMenuKeyboard() });
   } else {
     await ctx.reply("Avval ro'yxatdan o'ting: /start buyrug'ini yuboring.");
   }
@@ -415,6 +446,33 @@ app.get('/api/tts', async (req, res) => {
 if (PUBLIC_URL) {
   app.post('/telegram-webhook', webhookCallback(bot, 'express', { secretToken: WEBHOOK_SECRET }));
 }
+
+/* ===== ADMIN PANEL (veb, login/parol bilan himoyalangan) ===== */
+function adminAuth(req, res, next) {
+  const header = req.headers.authorization || '';
+  const [scheme, encoded] = header.split(' ');
+  if (scheme === 'Basic' && encoded && ADMIN_PANEL_PASSWORD) {
+    const decoded = Buffer.from(encoded, 'base64').toString('utf8');
+    const sepIdx = decoded.indexOf(':');
+    const user = decoded.slice(0, sepIdx);
+    const pass = decoded.slice(sepIdx + 1);
+    if (user === ADMIN_PANEL_USER && pass === ADMIN_PANEL_PASSWORD) return next();
+  }
+  res.set('WWW-Authenticate', 'Basic realm="5000-words admin"');
+  res.status(401).send('Kirish rad etildi');
+}
+
+app.get('/admin', adminAuth, (req, res) => {
+  res.sendFile(path.join(process.cwd(), 'admin.html'));
+});
+
+app.get('/admin/api/stats', adminAuth, async (req, res) => {
+  res.json(await getStats());
+});
+
+app.get('/admin/api/users', adminAuth, async (req, res) => {
+  res.json(await listUsersFull());
+});
 
 /* ===== KUNLIK FAOLLIK NAZORATI (1/2/3 kun kirmagan foydalanuvchilarga eslatma, 3 kunda reset) ===== */
 async function runEngagementCheck() {

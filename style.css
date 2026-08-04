@@ -343,6 +343,20 @@ body {
   font-size:1.3rem; line-height:1; cursor:pointer; z-index:5; font-family:inherit; }
 .intro-back-btn:active { transform:scale(.92); }
 
+/* ===== YO'RIQNOMA OVERLAY ===== */
+.guide-overlay { position:absolute; inset:0; z-index:550; display:none; background:var(--app); flex-direction:column; }
+.guide-overlay.show { display:flex; }
+.guide-header { display:flex; align-items:center; justify-content:space-between; gap:12px;
+  padding:calc(16px + var(--tg-safe-top, env(safe-area-inset-top))) 20px 14px; border-bottom:1px solid var(--border); flex-shrink:0; }
+.guide-title { font-size:1.1rem; font-weight:800; }
+.guide-close-btn { position:static; width:36px; height:36px; border-radius:12px; border:none;
+  background:var(--surface); color:var(--text); font-size:1rem; cursor:pointer; flex-shrink:0; }
+.guide-content { flex:1; overflow-y:auto; padding:18px 20px calc(24px + var(--tg-safe-bottom, env(safe-area-inset-bottom))); }
+.guide-content h3 { font-size:1rem; font-weight:800; color:var(--accent2); margin:22px 0 8px; }
+.guide-content h3:first-child { margin-top:0; }
+.guide-content p { font-size:.88rem; line-height:1.65; color:var(--text); margin-bottom:10px; }
+.guide-content b { color:var(--word1); }
+
 .quiz-word-card { background:linear-gradient(145deg,var(--card1),var(--card2)); border:1px solid var(--border);
   border-radius:22px; padding:30px 20px; text-align:center; margin-bottom:22px; }
 .quiz-word { font-size:2.2rem; font-weight:800; background:linear-gradient(45deg,var(--word1),var(--word2));

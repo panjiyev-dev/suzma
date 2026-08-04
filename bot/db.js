@@ -54,6 +54,19 @@ export async function isRegistered(telegramId) {
   return res.rows.length > 0;
 }
 
+export async function getUser(telegramId) {
+  const res = await client.execute({ sql: 'SELECT * FROM users WHERE telegram_id = ?', args: [telegramId] });
+  const row = res.rows[0];
+  if (!row) return null;
+  return {
+    telegramId: Number(row.telegram_id),
+    firstName: row.first_name,
+    lastName: row.last_name,
+    username: row.username,
+    phoneNumber: row.phone_number,
+  };
+}
+
 export async function registerUser({ telegramId, firstName, lastName, username, phoneNumber }) {
   await client.execute({
     sql: `
@@ -204,6 +217,34 @@ export async function getEngagementCheckList() {
     painPoint: r.pain_point,
     hopePoint: r.hope_point,
     missedStreak: Number(r.missed_streak),
+    lastActive: r.last_active,
+  }));
+}
+
+export async function listUsersFull() {
+  const res = await client.execute(`
+    SELECT u.telegram_id, u.first_name, u.last_name, u.username, u.phone_number, u.registered_at,
+           pr.current_index, pr.current_day, pr.updated_at,
+           pf.plan_days, pf.intro_completed, pf.reset_count,
+           (SELECT MAX(activity_date) FROM activity_log a WHERE a.telegram_id = u.telegram_id) AS last_active
+    FROM users u
+    LEFT JOIN progress pr ON pr.telegram_id = u.telegram_id
+    LEFT JOIN user_profile pf ON pf.telegram_id = u.telegram_id
+    ORDER BY (last_active IS NULL) ASC, last_active DESC, u.registered_at DESC
+  `);
+  return res.rows.map((r) => ({
+    telegramId: Number(r.telegram_id),
+    firstName: r.first_name,
+    lastName: r.last_name,
+    username: r.username,
+    phoneNumber: r.phone_number,
+    registeredAt: r.registered_at,
+    currentIndex: r.current_index === null ? null : Number(r.current_index),
+    currentDay: r.current_day === null ? null : Number(r.current_day),
+    updatedAt: r.updated_at,
+    planDays: r.plan_days === null ? null : Number(r.plan_days),
+    introCompleted: Number(r.intro_completed) === 1,
+    resetCount: r.reset_count === null ? 0 : Number(r.reset_count),
     lastActive: r.last_active,
   }));
 }

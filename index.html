@@ -119,6 +119,11 @@
           <div class="setting-label"><div class="ic">🔁</div><div class="txt"><b>Takrorlash tizimi</b><span>3, 7 va 14 kunlik</span></div></div>
           <div style="font-weight:800; color:var(--accent2)">3·7·14</div>
         </div>
+        <div class="settings-section-title">Yordam</div>
+        <div class="setting-row" id="guideRow" style="cursor:pointer">
+          <div class="setting-label"><div class="ic">📖</div><div class="txt"><b>Yo'riqnoma</b><span>Mnemonika texnikasi va usul haqida</span></div></div>
+          <div style="color:var(--muted); font-size:1.2rem">›</div>
+        </div>
         <div class="settings-section-title">Boshqaruv</div>
         <button class="reset-btn" id="resetBtn">Progressni tozalash (boshidan)</button>
       </div>
@@ -290,6 +295,55 @@
           <p>Endi sizning shaxsiy <b id="introPlanDays">35</b> kunlik rejangiz boshlanadi. Har kuni bir necha so'z, mnemonika bilan — va tizim 3·7·14 qoidasi asosida takrorlashni o'zi eslatadi.</p>
         </div>
         <button class="review-start-btn" id="introFinishBtn">Boshlash 🚀</button>
+      </div>
+    </div>
+
+    <!-- ============ YO'RIQNOMA OVERLAY ============ -->
+    <div class="guide-overlay" id="guideOverlay">
+      <div class="guide-header">
+        <div class="guide-title">📖 Yo'riqnoma</div>
+        <button class="guide-close-btn" id="guideCloseBtn">✕</button>
+      </div>
+      <div class="guide-content">
+
+        <h3>Nega odatiy usul ishlamaydi</h3>
+        <p>Ingliz tilini o'rganuvchi inson vaqtining <b>90%</b>ini yangi so'zlarni yodlashga sarflaydi. Statistikaga ko'ra, til o'rganuvchi yiliga o'rtacha 1200-1500 ta so'z yodlaydi — bu degani, 5000-6000 ta so'z (Advanced daraja) uchun <b>3-4 yil</b> kerak bo'ladi.</p>
+        <p>Ushbu ilova yordamida siz atigi <b>1 oy ichida 5000 ta so'zni</b> yodlab olish imkoniyatiga egasiz — chunki biz mnemonika texnikasidan foydalanamiz.</p>
+
+        <h3>So'z boyligi darajalari</h3>
+        <p>📌 <b>150 ta so'z</b> — Beginner, oddiy suhbatlar uchun yetarli<br>
+        📌 <b>800 ta so'z</b> — Elementary, chet elda sayohat qilish uchun yetarli<br>
+        📌 <b>2000-3000 ta so'z</b> — Intermediate, bemalol gaplashish, yozish, kitob o'qish darajasi (IELTS 5,5-6, CEFR B2)<br>
+        📌 <b>5000-6000 ta so'z</b> — Advanced, o'qituvchi darajasi (IELTS 7,5-8, CEFR C1)<br>
+        📌 <b>10 000 ta so'z</b> — Proficiency, professor darajasi (IELTS 9, CEFR C2)</p>
+
+        <h3>Miyangizning yashirin kuchi</h3>
+        <p>Miyamiz ikki qismdan iborat. <b>Chap yarim shar</b> — mantiq, raqam, matn, faktlarga javobgar, atigi <b>10%</b> xotira salohiyatiga ega. <b>O'ng yarim shar</b> — his-tuyg'u va tasavvurga javobgar, <b>90%</b> xotira salohiyatiga ega, shundan 80%i aynan tasavvurga tegishli.</p>
+        <p>Bog'cha yoshidagi bolalarning xotirasi kuchli bo'lishining sababi ham shu — ular hali matnli (chap tomon) xotiraga o'tishmagan, hamma narsani tasavvur orqali qabul qilishadi. Standart yodlash uslubi faqat chap tomonni ishlatadi — biz esa o'ng tomonni ham ishga soladigan mnemonika texnikasidan foydalanamiz.</p>
+
+        <h3>Meta-ta'lim haqida</h3>
+        <p>Meta-ta'lim — ta'lim jarayonini sezilarli tezlashtiradigan zamonaviy yondashuv. Uning tarkibiy qismlaridan biri — <b>mnemonika (superxotira)</b> sirlari. Maxsus texnika va algoritmlar yordamida, an'anaviy usulga nisbatan bir necha barobar tezroq va samaraliroq natijaga erishish mumkin.</p>
+
+        <h3>Aktiv va passiv lug'at</h3>
+        <p>So'zni ilk bor ko'rganingizda, bilim darajangiz eng pastki nuqtada bo'ladi: 1) ko'rganman → 2) tushunaman, lekin tarjima qilolmayman → 3) bilaman → 4) tarjima qila olaman → 5) <b>ishlata olaman</b>.</p>
+        <p>Faqat oxirgi bosqich — <b>aktiv lug'at</b> hisoblanadi. Qolgan to'rttasi passiv — o'qiysiz, tarjima qilasiz, lekin nutqda ishlata olmaysiz. Bizning maqsadimiz — barcha so'zlarni aktiv lug'atga aylantirish.</p>
+
+        <h3>Lug'at yodlash jarayoni — 3 bosqich</h3>
+        <p><b>1. So'zlarni tanlab olish</b> — biz siz uchun eng muhim 5000 ta so'zni allaqachon tayyorlab qo'yganmiz, o'zingiz qidirishingiz shart emas.<br>
+        <b>2. Eslab qolish</b> — mnemonika texnikasi orqali, quyida tushuntirilgan.<br>
+        <b>3. Mustahkamlash</b> — bu eng muhim bosqich, aynan shu yerda so'z "aktiv" bo'ladi. Ilovadagi 3·7·14 kunlik takrorlash tizimi aynan shu vazifani bajaradi.</p>
+
+        <h3>So'z yodlash texnikasi — 6 qadam</h3>
+        <p><b>1) O'xshatish</b> — chet tilidagi so'zni o'zbekcha tanish so'zga ovoz jihatidan o'xshatib olasiz (masalan Cat — "ket" — "kit"ga o'xshaydi). Miyamiz yangi ma'lumotni eski, tanish ma'lumot bilan bog'lagandagina uni yaxshi eslab qoladi.</p>
+        <p><b>2) Tarjima bilan birlashtirish</b> — topilgan o'xshatishni so'zning tarjimasi bilan bitta kulgili, g'alati obrazga aylantirasiz (kartochkadagi mnemonika aynan shunday tuzilgan).</p>
+        <p><b>3) 3 marta qaytarish</b> — assotsiatsiya tayyor bo'lgach, inglizchadan o'zbekchaga va aksincha, bir necha marta tez qaytarib chiqasiz.</p>
+        <p><b>4) 5 tadan ortiq olmaslik</b> — miyamiz bir vaqtning o'zida 5 tadan ortiq yangi ma'lumotni ushlab turolmaydi. Shu sabab ilovada har bir kun kichik porsiyalarga bo'lingan.</p>
+        <p><b>5) 96 soat qoidasi</b> — yangi o'rganilgan so'zni 4 kun ichida albatta bir marta qaytarish kerak, aks holda miya uni chetga chiqarib yuboradi. Aynan shu ilmiy qoida asosida ilovaning <b>3·7·14 kunlik takrorlash tizimi</b> qurilgan.</p>
+        <p><b>6) Shahar metodi</b> — yasagan assotsiatsiyalaringizni tasavvuringizda yaxshi bilgan joylarga (masalan, o'z uyingizga) "joylashtirib chiqish" ularni yanada mustahkam va aniq qiladi.</p>
+
+        <h3>Samaradorlikni oshirish</h3>
+        <p>Miya har 30 daqiqada charchay boshlaydi va ma'lumotni yaxshi qabul qilmay qo'yadi. Shuning uchun har yarim soatlik mashg'ulotdan keyin 5 daqiqa tanaffus qiling. Tanaffus vaqtida qo'l yoki ko'z gimnastikasi (barmoqlarni ishqalash, qorachiqni yon-yon harakatlantirish) qon aylanishini yaxshilab, miyani dam oldiradi va keyingi mashg'ulot samaradorligini oshiradi.</p>
+
       </div>
     </div>
 

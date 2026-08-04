@@ -765,6 +765,15 @@ function applyTheme(t) {
 themeToggle.addEventListener('change', () => { haptic('light'); applyTheme(themeToggle.checked ? 'dark' : 'light'); });
 applyTheme(localStorage.getItem(KEY_THEME) || (tg && tg.colorScheme) || 'dark');
 
+/* ===== YO'RIQNOMA ===== */
+const guideOverlayEl = document.getElementById('guideOverlay');
+document.getElementById('guideRow').addEventListener('click', () => {
+  guideOverlayEl.classList.add('show'); haptic('light');
+});
+document.getElementById('guideCloseBtn').addEventListener('click', () => {
+  guideOverlayEl.classList.remove('show');
+});
+
 /* ===== RESET ===== */
 const confirmResetModal = document.getElementById('confirmResetModal');
 const resetSuccessEl = document.getElementById('resetSuccess');

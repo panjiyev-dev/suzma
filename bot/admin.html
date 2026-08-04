@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>5000-words — Admin panel</title>
+<style>
+  :root { --bg:#0f0f17; --card:#171722; --border:#2a2a3a; --text:#f0f0f5; --muted:#8a8a9a; --accent:#6c5ce7; --accent2:#a29bfe; --good:#00b894; --bad:#e74c3c; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; padding:20px; }
+  h1 { font-size:1.3rem; margin:0 0 18px; }
+  .stats { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:22px; }
+  .stat-card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px 18px; min-width:120px; }
+  .stat-num { font-size:1.5rem; font-weight:800; background:linear-gradient(45deg,var(--accent),var(--accent2)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+  .stat-lbl { font-size:.75rem; color:var(--muted); margin-top:2px; }
+  .toolbar { display:flex; gap:10px; margin-bottom:14px; align-items:center; }
+  #search { flex:1; max-width:320px; padding:10px 14px; border-radius:10px; border:1px solid var(--border); background:var(--card); color:var(--text); font-size:.9rem; }
+  #count { color:var(--muted); font-size:.85rem; }
+  table { width:100%; border-collapse:collapse; background:var(--card); border-radius:14px; overflow:hidden; font-size:.85rem; }
+  th, td { padding:10px 12px; text-align:left; border-bottom:1px solid var(--border); white-space:nowrap; }
+  th { color:var(--muted); font-weight:700; font-size:.72rem; text-transform:uppercase; letter-spacing:.4px; position:sticky; top:0; background:var(--card); }
+  tr:last-child td { border-bottom:none; }
+  tr:hover td { background:rgba(255,255,255,.02); }
+  .badge { padding:2px 8px; border-radius:8px; font-size:.72rem; font-weight:700; }
+  .badge.yes { background:rgba(0,184,148,.15); color:var(--good); }
+  .badge.no { background:rgba(231,76,60,.15); color:var(--bad); }
+  .tel { font-variant-numeric:tabular-nums; }
+  .table-wrap { overflow-x:auto; border:1px solid var(--border); border-radius:14px; }
+  .muted { color:var(--muted); }
+  .err { color:var(--bad); padding:20px; }
+</style>
+</head>
+<body>
+  <h1>📊 5000-words — Admin panel</h1>
+  <div class="stats" id="stats"></div>
+  <div class="toolbar">
+    <input type="text" id="search" placeholder="Ism, username yoki telefon bo'yicha qidirish...">
+    <span id="count"></span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Ism</th><th>Username</th><th>Telefon</th><th>Ro'yxatdan o'tgan</th>
+          <th>Joriy so'z</th><th>Kun</th><th>Reja</th><th>Kirish darsi</th><th>Reset</th><th>Oxirgi faollik</th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+
+<script>
+const TOTAL_WORDS = 4946;
+function fmtDate(s) { if (!s) return '—'; const d = new Date(s); return isNaN(d) ? s : d.toLocaleDateString('uz-UZ'); }
+function esc(s) { return (s || '').toString().replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+
+let allUsers = [];
+
+async function load() {
+  const [stats, users] = await Promise.all([
+    fetch('/admin/api/stats').then(r => r.json()),
+    fetch('/admin/api/users').then(r => r.json()),
+  ]);
+  document.getElementById('stats').innerHTML = `
+    <div class="stat-card"><div class="stat-num">${stats.totalUsers}</div><div class="stat-lbl">Jami ro'yxatdan o'tgan</div></div>
+    <div class="stat-card"><div class="stat-num">${stats.today}</div><div class="stat-lbl">Bugun faol</div></div>
+    <div class="stat-card"><div class="stat-num">${stats.yesterday}</div><div class="stat-lbl">Kecha faol</div></div>
+    <div class="stat-card"><div class="stat-num">${stats.last7Days}</div><div class="stat-lbl">So'nggi 7 kun</div></div>
+    <div class="stat-card"><div class="stat-num">${stats.everActive}</div><div class="stat-lbl">Umuman faollashgan</div></div>
+  `;
+  allUsers = users;
+  render();
+}
+
+function render() {
+  const q = document.getElementById('search').value.trim().toLowerCase();
+  const filtered = allUsers.filter((u) => {
+    if (!q) return true;
+    const name = [u.firstName, u.lastName].filter(Boolean).join(' ').toLowerCase();
+    return name.includes(q) || (u.username || '').toLowerCase().includes(q) || (u.phoneNumber || '').includes(q);
+  });
+  document.getElementById('count').textContent = filtered.length + ' / ' + allUsers.length + ' foydalanuvchi';
+  document.getElementById('rows').innerHTML = filtered.map((u) => {
+    const name = [u.firstName, u.lastName].filter(Boolean).join(' ') || 'Noma\'lum';
+    const wordProg = u.currentIndex !== null ? (u.currentIndex + 1) + ' / ' + TOTAL_WORDS : '—';
+    return `<tr>
+      <td>${esc(name)}</td>
+      <td>${u.username ? '@' + esc(u.username) : '—'}</td>
+      <td class="tel">${esc(u.phoneNumber) || '—'}</td>
+      <td>${fmtDate(u.registeredAt)}</td>
+      <td>${wordProg}</td>
+      <td>${u.currentDay ?? '—'}</td>
+      <td>${u.planDays ?? '—'} kun</td>
+      <td><span class="badge ${u.introCompleted ? 'yes' : 'no'}">${u.introCompleted ? 'tugatgan' : 'yo\'q'}</span></td>
+      <td>${u.resetCount}</td>
+      <td>${fmtDate(u.lastActive)}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="10" class="muted">Hech kim topilmadi</td></tr>';
+}
+
+document.getElementById('search').addEventListener('input', render);
+load().catch((e) => {
+  document.body.innerHTML = '<div class="err">Ma\'lumotlarni yuklashda xato: ' + esc(e.message) + '</div>';
+});
+</script>
+</body>
+</html>
